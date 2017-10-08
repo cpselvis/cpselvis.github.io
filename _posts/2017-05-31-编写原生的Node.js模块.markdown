@@ -1,0 +1,128 @@
+---
+layout: post
+title: 编写原生的Node.js模块
+date: 2017-05-31 22:13:24.000000000 +09:00
+---
+
+> 导语：当Javascript的性能遭遇瓶颈，或者需要增强Javascript能力的时候，就需要依赖native模块来实现了。
+
+### 应用场景
+日常工作中，我们经常需要将原生的Node.js模块做为依赖并在项目中进行使用。下面有个列表，你可能对它们的名字很熟悉:
+* [node-sass](https://github.com/sass/node-sass) 将sass文件编译成css文件
+* [node-microtime](https://github.com/wadey/node-microtime): 扩展Javascript的时间精度
+* [node-inspector](https://github.com/node-inspector)：进行调试
+* [v8-profiler](https://github.com/node-inspector/v8-profiler)：性能及内存使用分析
+
+通常，我们开发原生Node.js模块包括但不仅限于以下原因：
+* 对性能有比较苛刻要求的应用。尽管Node.js得益于libuv，在异步I/O操作很有优势，但遇到数字计算时并不是一个很好的选择。
+* 使用更加底层的API，比如操作系统层面的。
+* 在C/C++和Node.js之间创建一个Bridge，进行通信。
+
+### 什么是原生模块？
+Node.js Addons是动态链接的可共享对象，由C/C++编写而成。可以在Node.js中通过`require()`方法进行调用，使用起来像调用Node.js普通模块一样。 —— 来自[Node.js官方文档](https://nodejs.org/dist/latest-v6.x/docs/api/addons.html#addons_c_c_addons)
+
+这意味着如果处理得当的话，模块调用者使用由C/C++编写的原生模块的方式和由Node.js编写的模块一样。想要编写Node.js addons，你需要了解一些基本知识：
+* [Libuv](http://docs.libuv.org/en/v1.x/)
+* [V8](https://github.com/v8/v8/wiki)
+* [Node.js internals](https://nodejs.org/api/)
+
+推荐阅读这些资料。
+
+### 创建Node.js的原生扩展模块
+下面我以一个常见的动态规划问题-青蛙跳台阶为例子来说明如何创建一个原生的Node.js模块。青蛙跳台阶描述为：一只青蛙一次可以跳上一级台阶，也可以跳上2级台阶，求该青蛙跳上n级台阶的共有多少种跳法？
+
+首先创建一个frog_jump.cc原生文件，.cc的意思是c with class，扩展名也可以是.cpp。[Google Style Guide](https://google.github.io/styleguide/cppguide.html)建议使用.cc，那么此处还是以.cc做为扩展名吧。代码如下：
+``` cpp
+#include <node.h>
+#include<vector>
+
+/**
+ * Native method, calculate all ways frog jump to a target stair.
+ */
+int climbStairs(int n) {
+  std::vector<int> dp(n);
+
+  dp[1] = 1;
+  dp[2] = 2;
+
+  for (int i = 3; i <= n; i ++ ) {
+    dp[i] = dp[i - 1] + dp[i - 2];
+  }
+  return dp[n];
+}
+
+/**
+ * Export native method jumpTo
+ */
+void JumpTo(const v8::FunctionCallbackInfo<v8::Value>& args) {
+  v8::Isolate* isolate = args.GetIsolate();
+
+  // Check input type
+  if (!args[0] -> IsNumber()) {
+    isolate -> ThrowException(v8::Exception::TypeError(
+      v8::String::NewFromUtf8(isolate, "Wrong arguments type!")));
+  }
+
+  int value = climbStairs(args[0] -> NumberValue());
+  v8::Local<v8::Number> num = v8::Number::New(isolate, value);
+
+  args.GetReturnValue().Set(num);
+}
+
+// init is entry point.
+void init(v8::Local<v8::Object> exports) {
+  NODE_SET_METHOD(exports, "jumpTo", JumpTo);
+}
+
+NODE_MODULE(frog_jump, init)
+```
+
+对这段代码的解释：
+* \#include "node.h" 是c++里面引入头文件的方式，具体源码：[node.h](https://github.com/nodejs/node/blob/master/src/node.h)，C++链接时会加载这个头文件。头文件里面引入了v8命名空间，我们可以通过`v8::`标志来访问v8的接口。访问所有v8的类型，都需要使用v8::标志
+* 通过args对象来访问Node.js传递过来的参数，通过args也可以获取调用相关信息。
+* 通过v8::Isolate*可以获取函数作用域，可以像JS里面一样进行变量赋值，而不用担心垃圾回收问题，垃圾回收器会自动进行。
+* args.GetReturnValue()可以对函数返回的结果进行设置。
+* 任何原生Node.js模块都需要调用NODE_MODULE，NODE_MODULE是一个宏，它会进行模块注册操作。
+* C++ 有丰富的内置类型来保存数字或者字符串，但是JS只能识别v8::里面定义的类型。因此，将c++的变量赋值给JS时，需要转换成可以被JS识别的类型，也即是v8::定义的类型。比如v8::String、v8::Object。
+
+### 编译原生的Node.js模块
+一旦源代码编写完成，需要将它编译成二进制的`addon.node`文件，之后才能被Node.js require。为了完成编译操作，需要在项目的根目录创建binding.gyp文件，里面定义了Build的配置。binding.gyp的内容是一个JSON。
+
+``` shell
+{
+  "targets": [
+    {
+      "target_name": "frog_jump",
+      "sources": [ "frog_jump.cc" ]
+    }
+  ]
+}
+```
+
+编译环境配置：
+* windows: 以管理员的身份运行npm install --global --production windows-build-tools，这个会安装所有编译依赖的工具。
+* linux: 安装python [v2.7](https://www.python.org/download/releases/2.7/)、[make](https://www.gnu.org/software/make/)和[GCC](https://gcc.gnu.org/)
+* osx: 安装xcode
+
+
+虽然npm内置了一个node-gyp版本，但是这个版本没有开放给开发者进行调用。npm install的时候会调用它来进行编译和安装工作。因此，开发者想要调用node-gyp必须自己安装一个全局的node-gyp版本。
+
+```sh
+$ npm install node-gyp -g
+$ node-gyp configure
+$ node-gyp build
+```
+运行node-gyp configure命令会生成一个跨平台的build文件，unix环境会生成Makefile，windows环境会在build目录里面生成vcxproj。
+运行node-gyp build命令会生成可被Node.js调动的addon.node二进制文件。
+
+### Node.js中调用原生模块
+``` javascript
+const frogJump = require('./build/Release/frog_jump');
+
+frogJump.jumpTo(20);  //青蛙跳到第20个台阶的所有方法
+```
+项目源代码：[frog-jump](https://github.com/cpselvis/frog-jump)
+
+### 后续
+[nan](https://github.com/nodejs/nan)，即Native Abstractions for Node.js。它基于Node.js API接口，兼容所有Node版本，目前的最佳实践是基于nan来扩展原生模块，而不是直接使用Node.js API。
+[N-API](https://nodejs.org/api/n-api.html)，Node官方推出的用来编写原生Node扩展模块，是V8和nan的替代，目前处于实验阶段。

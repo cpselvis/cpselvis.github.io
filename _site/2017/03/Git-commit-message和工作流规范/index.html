@@ -1,0 +1,393 @@
+<!DOCTYPE html>
+<html>
+
+  <head>
+  <meta charset="utf-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+
+  <title>Git commit message和工作流规范</title>
+  <meta name="description" content="目的  统一团队Git commit日志标准，便于后续代码review，版本发布以及日志自动化生成等等。  统一团队的Git工作流，包括分支使用、tag规范、issue等">
+  <meta name="author" content="Wei Wang">
+
+  <meta name="twitter:card" content="summary">
+  <meta name="twitter:title" content="Git commit message和工作流规范">
+  <meta name="twitter:description" content="目的  统一团队Git commit日志标准，便于后续代码review，版本发布以及日志自动化生成等等。  统一团队的Git工作流，包括分支使用、tag规范、issue等">
+  
+  <meta property="og:type" content="article">
+  <meta property="og:title" content="Git commit message和工作流规范">
+  <meta property="og:description" content="目的  统一团队Git commit日志标准，便于后续代码review，版本发布以及日志自动化生成等等。  统一团队的Git工作流，包括分支使用、tag规范、issue等">
+  
+  <link rel="icon" type="image/png" href="/assets/images/favicon.png" />
+  <link href="/assets/images/favicon.png" rel="shortcut icon" type="image/png">
+  
+  <link rel="stylesheet" href="/css/main.css">
+  <link href="//netdna.bootstrapcdn.com/font-awesome/4.1.0/css/font-awesome.min.css" rel="stylesheet">
+
+  <link rel="canonical" href="http://localhost:4000/2017/03/Git-commit-message%E5%92%8C%E5%B7%A5%E4%BD%9C%E6%B5%81%E8%A7%84%E8%8C%83/">
+  <link rel="alternate" type="application/rss+xml" title="cpselvis" href="http://localhost:4000/feed.xml">
+  
+  <meta name="google-site-verification" content="1-1ZlHoRvM0T2FqPbW2S-qLgYXN6rsn52kErlMPd_gw" />
+  
+</head>
+
+
+  <body>
+
+    <span class="mobile btn-mobile-menu">
+        <i class="fa fa-list btn-mobile-menu__icon"></i>
+        <i class="fa fa-angle-up btn-mobile-close__icon hidden"></i>
+    </span>
+    
+    <header class="panel-cover panel-cover--collapsed" style="background-image: url('/assets/images/background-cover.jpg')">
+  <div class="panel-main">
+
+    <div class="panel-main__inner panel-inverted">
+    <div class="panel-main__content">
+
+        <a href="/#blog" title="前往 cpselvis 的主页" class="blog-button"><img src="/assets/images/avatar.jpg" width="80" alt="cpselvis logo" class="panel-cover__logo logo" /></a>
+        <h1 class="panel-cover__title panel-title"><a href="/#blog" title="link to homepage for cpselvis" class="blog-button">cpselvis</a></h1>
+        
+        <span class="panel-cover__subtitle panel-subtitle">落花无言,人淡如菊,心素如简</span>
+        
+        <hr class="panel-cover__divider" />
+        <p class="panel-cover__description">嗨，我是程柳锋 (@cpselvis)，一名来自中国的 web 开发者。现居深圳，就职于 腾讯。目前负责研发规范和工程化建设，曾在OSC源创会上做过分享。</p>
+        <hr class="panel-cover__divider panel-cover__divider--secondary" />
+        
+        
+        
+        <div class="navigation-wrapper">
+          <div>
+            <nav class="cover-navigation cover-navigation--primary">
+              <ul class="navigation">
+                <li class="navigation__item"><a href="/#blog" title="Visit blog" class="blog-button">博客</a></li>
+                
+                  <li class="navigation__item"><a href="https://cpselvis.github.io/" target="_blank" title="My Projects">首页</a></li>
+                
+              </ul>
+            </nav>
+          </div>
+          
+          <div><nav class="cover-navigation navigation--social">
+  <ul class="navigation">
+
+  
+  <!-- Weibo -->
+  <li class="navigation__item">
+    <a href="http://weibo.com/cpselvis" title="@cpselvis 的微博" target="_blank">
+      <i class='social fa fa-weibo'></i>
+      <span class="label">Weibo</span>
+    </a>
+  </li>
+  
+
+  
+  <!-- Github -->
+  <li class="navigation__item">
+    <a href="https://github.com/cpselvis" title="@cpselvis 的 Github" target="_blank">
+      <i class='social fa fa-github'></i>
+      <span class="label">Github</span>
+    </a>
+  </li>
+  
+  
+  
+  <!-- Twitter -->
+  <li class="navigation__item">
+    <a href="http://twitter.com/cpselvis" title="@cpselvis" target="_blank">
+      <i class='social fa fa-twitter'></i>
+      <span class="label">Twitter</span>
+    </a>
+  </li>
+  
+
+  
+  <!-- Google Plus -->
+  <li class="navigation__item">
+    <a href="https://plus.google.com/104634663101299635957" rel="author" title="Google+" target="_blank">
+      <i class='social fa fa-google-plus-square'></i>
+      <span class="label">Google Plus</span>
+    </a>
+  </li>
+  
+
+  <!-- RSS -->
+  <li class="navigation__item">
+    <a href="/feed.xml" rel="author" title="RSS" target="_blank">
+      <i class='social fa fa-rss'></i>
+      <span class="label">RSS</span>
+    </a>
+  </li>
+
+  
+  <!-- Email -->
+  <li class="navigation__item">
+    <a href="mailto:cpselvis@gmail.com" title="Contact me">
+      <i class='social fa fa-envelope'></i>
+      <span class="label">Email</span>
+    </a>
+  </li>
+  
+
+  </ul>
+</nav>
+</div>
+        </div>
+      </div>
+    </div>
+    
+    
+    <div class="panel-cover--overlay cover-blue"></div>
+    
+  </div>
+</header>
+
+
+    <div class="content-wrapper">
+        <div class="content-wrapper__inner">
+            <article class="post-container post-container--single" itemscope itemtype="http://schema.org/BlogPosting">
+  <header class="post-header">
+    <div class="post-meta">
+      <time datetime="2017-03-04 14:33:24 +0800" itemprop="datePublished" class="post-meta__date date">2017-03-04</time> &#8226; <span class="post-meta__tags tags"></span>
+    </div>
+    <h1 class="post-title">Git commit message和工作流规范</h1>
+  </header>
+
+  <section class="post">
+    <h3 id="目的">目的</h3>
+<ul>
+  <li>统一团队Git commit日志标准，便于后续代码review，版本发布以及日志自动化生成等等。</li>
+  <li>统一团队的Git工作流，包括分支使用、tag规范、issue等</li>
+</ul>
+
+<h3 id="git-commit日志参考案例">Git commit日志参考案例</h3>
+<ul>
+  <li><a href="https://github.com/angular/angular">angular</a></li>
+  <li><a href="https://github.com/cpselvis/commit-message-test-project">commit-message-test-project</a></li>
+  <li><a href="https://github.com/istanbuljs/babel-plugin-istanbul">babel-plugin-istanbul</a></li>
+  <li><a href="https://github.com/conventional-changelog/conventional-changelog">conventional-changelog</a></li>
+</ul>
+
+<h3 id="总体方案">总体方案</h3>
+
+<p><img src="http://images2015.cnblogs.com/blog/1030776/201703/1030776-20170304152156235-891182085.png" alt="" /></p>
+
+<h3 id="git-commit日志基本规范">Git commit日志基本规范</h3>
+<div class="highlighter-rouge"><pre class="highlight"><code>&lt;type&gt;(&lt;scope&gt;): &lt;subject&gt;
+&lt;BLANK LINE&gt;
+&lt;body&gt;
+&lt;BLANK LINE&gt;
+&lt;footer&gt;
+</code></pre>
+</div>
+
+<p>对格式的说明如下：</p>
+
+<ul>
+  <li>type代表某次提交的类型，比如是修复一个bug还是增加一个新的feature。所有的type类型如下：</li>
+  <li>feat： 新增feature</li>
+  <li>fix: 修复bug</li>
+  <li>docs: 仅仅修改了文档，比如README, CHANGELOG, CONTRIBUTE等等</li>
+  <li>style: 仅仅修改了空格、格式缩进、都好等等，不改变代码逻辑</li>
+  <li>refactor: 代码重构，没有加新功能或者修复bug</li>
+  <li>perf: 优化相关，比如提升性能、体验</li>
+  <li>test: 测试用例，包括单元测试、集成测试等</li>
+  <li>chore: 改变构建流程、或者增加依赖库、工具等</li>
+  <li>revert: 回滚到上一个版本</li>
+</ul>
+
+<p>格式要求：</p>
+<div class="highlighter-rouge"><pre class="highlight"><code># 标题行：50个字符以内，描述主要变更内容
+#
+# 主体内容：更详细的说明文本，建议72个字符以内。 需要描述的信息包括:
+#
+# * 为什么这个变更是必须的? 它可能是用来修复一个bug，增加一个feature，提升性能、可靠性、稳定性等等
+# * 他如何解决这个问题? 具体描述解决问题的步骤
+# * 是否存在副作用、风险?
+#
+# 尾部：如果需要的化可以添加一个链接到issue地址或者其它文档，或者关闭某个issue。
+</code></pre>
+</div>
+
+<h3 id="git分支与版本发布规范">Git分支与版本发布规范</h3>
+<ul>
+  <li>基本原则：master为保护分支，不直接在master上进行代码修改和提交。</li>
+  <li>开发日常需求或者项目时，从master分支上checkout一个feature分支进行开发或者bugfix分支进行bug修复，功能测试完毕并且项目发布上线后，<code class="highlighter-rouge">将feature分支合并到主干master，并且打Tag发布，最后删除开发分支</code>。分支命名规范：
+    <ul>
+      <li>分支版本命名规则：分支类型 _ 分支发布时间 _ 分支功能。比如：feature_20170401_fairy_flower</li>
+      <li>分支类型包括：feature、 bugfix、refactor三种类型，即新功能开发、bug修复和代码重构</li>
+      <li>时间使用年月日进行命名，不足2位补0</li>
+      <li>分支功能命名使用snake case命名法，即下划线命名。</li>
+    </ul>
+  </li>
+  <li>Tag包括3位版本，前缀使用v。比如v1.2.31。Tag命名规范：
+    <ul>
+      <li>新功能开发使用第2位版本号，bug修复使用第3位版本号</li>
+      <li>核心基础库或者Node中间价可以在大版本发布请使用灰度版本号，在版本后面加上后缀，用中划线分隔。alpha或者belta后面加上次数，即第几次alpha：
+        <ul>
+          <li>v2.0.0-alpha-1</li>
+          <li>v2.0.0-belta-1</li>
+        </ul>
+      </li>
+    </ul>
+  </li>
+  <li>版本正式发布前需要生成changelog文档，然后再发布上线。</li>
+</ul>
+
+<h3 id="如何接入">如何接入？</h3>
+<p>接入参考<a href="https://github.com/cpselvis/commit-message-test-project">commit-message-test-project</a>项目。具体步骤如下：</p>
+
+<ul>
+  <li>第一步：在工程跟目录下的package.json文件加入如下代码所示的scripts和dependencies内容，版本号为3位版本号。</li>
+</ul>
+
+<div class="language-sh highlighter-rouge"><pre class="highlight"><code>  <span class="o">{</span>
+    <span class="s2">"name"</span>: <span class="s2">"application-name"</span>,
+    <span class="s2">"version"</span>: <span class="s2">"0.1.0"</span>,
+    <span class="s2">"scripts"</span>: <span class="o">{</span>
+      <span class="s2">"commitmsg"</span>: <span class="s2">"validate-commit-msg"</span>,
+      <span class="s2">"commit"</span>: <span class="s2">"git-cz "</span>,
+      <span class="s2">"changelog"</span>: <span class="s2">"conventional-changelog -p angular -i CHANGELOG.md -s -r 0"</span>
+    <span class="o">}</span>,
+    <span class="s2">"devDependencies"</span>: <span class="o">{</span>
+      <span class="s2">"commitizen"</span>: <span class="s2">"^2.3.0"</span>,
+      <span class="s2">"validate-commit-msg"</span>: <span class="s2">"^2.11.1"</span>,
+      <span class="s2">"conventional-changelog-cli"</span>: <span class="s2">"^1.2.0"</span>,
+      <span class="s2">"husky"</span>: <span class="s2">"^0.13.1"</span>
+    <span class="o">}</span>
+  <span class="o">}</span>
+</code></pre>
+</div>
+
+<ul>
+  <li>第二步：在工程根目录新建.vcmrc文件，并且文件内容为</li>
+</ul>
+
+<div class="language-sh highlighter-rouge"><pre class="highlight"><code><span class="o">{</span>
+  <span class="s2">"helpMessage"</span>: <span class="s2">"</span><span class="se">\n</span><span class="s2">Please fix your commit message (and consider using https://www.npmjs.com/package/commitizen)</span><span class="se">\n</span><span class="s2">"</span>,
+  <span class="s2">"types"</span>: <span class="o">[</span>
+    <span class="s2">"feat"</span>,
+    <span class="s2">"fix"</span>,
+    <span class="s2">"docs"</span>,
+    <span class="s2">"style"</span>,
+    <span class="s2">"refactor"</span>,
+    <span class="s2">"perf"</span>,
+    <span class="s2">"test"</span>,
+    <span class="s2">"chore"</span>,
+    <span class="s2">"revert"</span>
+  <span class="o">]</span>,
+  <span class="s2">"warnOnFail"</span>: <span class="nb">false</span>,
+  <span class="s2">"autoFix"</span>: <span class="nb">false</span>
+<span class="o">}</span>
+</code></pre>
+</div>
+<h3 id="接入后的git-commit操作流程">接入后的Git commit操作流程</h3>
+<ul>
+  <li>
+    <p>第一步：创建一个feature分支或者bugfix分支
+<code class="highlighter-rouge">sh
+$ git checkout -b feature_infinite_load    # 切换到一个feature分支或者bug fix分支
+</code> sh</p>
+  </li>
+  <li>
+    <p>第二步：将代码提交到本地Git仓库，并填写符合要求的Commit message格式</p>
+    <div class="language-sh highlighter-rouge"><pre class="highlight"><code><span class="gp">$ </span>git add .                                
+<span class="gp">$ </span>git commit                               <span class="c"># 此处不要加任何参数，比如-m</span>
+</code></pre>
+    </div>
+
+    <p>如下图所示：</p>
+  </li>
+</ul>
+
+<p><img src="http://images2015.cnblogs.com/blog/1030776/201703/1030776-20170304153136563-2126734467.png" alt="" /></p>
+
+<ul>
+  <li>第三步：将代码同步到远程Git仓库
+    <div class="language-sh highlighter-rouge"><pre class="highlight"><code><span class="gp">$ </span>git push origin feature_infinite_load    <span class="c"># 将修改发布到远程仓库</span>
+</code></pre>
+    </div>
+  </li>
+  <li>第四步：自动生成changelog，并打Tag发布
+    <div class="language-sh highlighter-rouge"><pre class="highlight"><code><span class="gp">$ </span>tnpm run changelog                    <span class="c"># 使用npm script中的changlog命令直接从git元数据生成日志。</span>
+<span class="gp">$ </span>git tag v0.1.0
+<span class="gp">$ </span>git push origin v0.1.0
+</code></pre>
+    </div>
+  </li>
+</ul>
+
+  </section>
+</article>
+
+<section class="read-more">
+   
+   
+   <div class="read-more-item">
+       <span class="read-more-item-dim">最近的文章</span>
+       <h2 class="post-list__post-title post-title"><a href="/2017/03/%E4%BD%BF%E7%94%A8Yeoman-generator%E6%9D%A5%E8%A7%84%E8%8C%83%E5%B7%A5%E7%A8%8B%E7%9A%84%E5%88%9D%E5%A7%8B%E5%8C%96/" title="link to 使用Yeoman generator来规范工程的初始化">使用Yeoman generator来规范工程的初始化</a></h2>
+       <p class="excerpt">前言  随着开发团队不断发展壮大，在人员增加的同时也带来了协作成本的增加；业务项目越来越多，类型也各不相同。常见的类型有基础组件、业务组件、基于React的业务项目、基于Vue的业务项目等等。如果想要对每个项目进行一些规范上的约束比如Git提交规范、Javascript规范简直难于登天。所有的这些，只是因为还欠缺一个好用的工程化工具，在项目创建的初期自动的将这些目录结构和文件生成、并且集成工程常见的规范来进行约束。本文分为两部分，首先会谈谈目前团队的痛点以及基于yeoman generat...&hellip;</p>
+       <div class="post-list__meta"><time datetime="2017-03-27 22:25:24 +0800" class="post-list__meta--date date">2017-03-27</time> &#8226; <span class="post-list__meta--tags tags"></span><a class="btn-border-small" href=/2017/03/%E4%BD%BF%E7%94%A8Yeoman-generator%E6%9D%A5%E8%A7%84%E8%8C%83%E5%B7%A5%E7%A8%8B%E7%9A%84%E5%88%9D%E5%A7%8B%E5%8C%96/>继续阅读</a></div>
+   </div>
+   
+   
+   
+   
+   <div class="read-more-item">
+       <span class="read-more-item-dim">更早的文章</span>
+       <h2 class="post-list__post-title post-title"><a href="/2017/02/%E5%A6%82%E4%BD%95%E5%86%99%E5%A5%BD-Git-commit-messages/" title="link to 如何写好 Git commit messages">如何写好 Git commit messages</a></h2>
+       <p class="excerpt">  导语：任何软件项目都是一个协作项目，它至少需要2个开发人员参与，当原始的开发人员将项目开发几个星期或者几个月之后，项目步入正规。不过他们或者后续的开发人员仍然需要经常提交一些代码去修复bug或者实现新的feature。我们经常有这种感受：当一个项目时间过了很久之后，我们对于项目里面的文件和函数功能渐渐淡忘，重新去阅读熟悉这部分代码是很浪费时间并且恼人的一件事。但是这也没法完全避免，我们可以使用一些技巧尽可能减少重新熟悉代码的时间。commit messages可以满足需要，它也反映了一...&hellip;</p>
+       <div class="post-list__meta"><time datetime="2017-02-21 13:09:24 +0800" class="post-list__meta--date date">2017-02-21</time> &#8226; <span class="post-list__meta--tags tags"></span><a class="btn-border-small" href=/2017/02/%E5%A6%82%E4%BD%95%E5%86%99%E5%A5%BD-Git-commit-messages/>继续阅读</a></div>
+   </div>
+   
+</section>
+
+<section class="post-comments">
+  
+    <div id="disqus_thread"></div>
+    <script>
+    
+    var disqus_config = function () {
+        this.page.url = "http://localhost:4000/2017/03/Git-commit-message%E5%92%8C%E5%B7%A5%E4%BD%9C%E6%B5%81%E8%A7%84%E8%8C%83/";
+        this.page.identifier = "/2017/03/Git-commit-message%E5%92%8C%E5%B7%A5%E4%BD%9C%E6%B5%81%E8%A7%84%E8%8C%83/";
+    };
+
+    var disqus_shortname = 'vno-jekyll';
+    
+    (function() { // DON'T EDIT BELOW THIS LINE
+        var d = document, s = d.createElement('script');
+        s.src = '//' + disqus_shortname + '.disqus.com/embed.js';
+        s.setAttribute('data-timestamp', +new Date());
+            (d.head || d.body).appendChild(s);
+        })();
+    </script>
+    <noscript>要查看<a href="http://disqus.com/?ref_noscript"> Disqus </a>评论，请启用 JavaScript</noscript>
+    
+  
+  
+  
+  
+</section>
+
+
+            <section class="footer">
+    <footer>
+    	<span class="footer__copyright">本站点采用<a href="http://creativecommons.org/licenses/by-nc-sa/4.0/">知识共享 署名-非商业性使用-相同方式共享 4.0 国际 许可协议</a></span>
+        <span class="footer__copyright">由 <a href="https://jekyllrb.com">Jekyll</a> 于 2017-10-08 生成，感谢 <a href="https://www.digitalocean.com/?refcode=30ed2d146762">Digital Ocean</a> 为本站提供稳定的 VPS 服务</span>
+        <span class="footer__copyright">本站由 <a href="https://cpselvis.github.io">@cpselvis</a> 创建，采用 <a href="https://github.com/onevcat/vno-jekyll">Vno - Jekyll</a> 作为主题，您可以在 GitHub 找到<a href="https://github.com/onevcat/OneV-s-Den">本站源码</a> - &copy; 2017</span>
+    </footer>
+</section>
+
+        </div>
+    </div>
+    
+    <script type="text/javascript" src="//code.jquery.com/jquery-1.11.3.min.js"></script>
+
+<script type="text/javascript" src="/js/main.js"></script>
+
+
+
+    
+  </body>
+
+</html>

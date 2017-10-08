@@ -1,0 +1,364 @@
+<!DOCTYPE html>
+<html>
+
+  <head>
+  <meta charset="utf-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+
+  <title>编写原生的Node.js模块</title>
+  <meta name="description" content="  导语：当Javascript的性能遭遇瓶颈，或者需要增强Javascript能力的时候，就需要依赖native模块来实现了。">
+  <meta name="author" content="Wei Wang">
+
+  <meta name="twitter:card" content="summary">
+  <meta name="twitter:title" content="编写原生的Node.js模块">
+  <meta name="twitter:description" content="  导语：当Javascript的性能遭遇瓶颈，或者需要增强Javascript能力的时候，就需要依赖native模块来实现了。">
+  
+  <meta property="og:type" content="article">
+  <meta property="og:title" content="编写原生的Node.js模块">
+  <meta property="og:description" content="  导语：当Javascript的性能遭遇瓶颈，或者需要增强Javascript能力的时候，就需要依赖native模块来实现了。">
+  
+  <link rel="icon" type="image/png" href="/assets/images/favicon.png" />
+  <link href="/assets/images/favicon.png" rel="shortcut icon" type="image/png">
+  
+  <link rel="stylesheet" href="/css/main.css">
+  <link href="//netdna.bootstrapcdn.com/font-awesome/4.1.0/css/font-awesome.min.css" rel="stylesheet">
+
+  <link rel="canonical" href="http://localhost:4000/2017/05/%E7%BC%96%E5%86%99%E5%8E%9F%E7%94%9F%E7%9A%84Node.js%E6%A8%A1%E5%9D%97/">
+  <link rel="alternate" type="application/rss+xml" title="cpselvis" href="http://localhost:4000/feed.xml">
+  
+  <meta name="google-site-verification" content="1-1ZlHoRvM0T2FqPbW2S-qLgYXN6rsn52kErlMPd_gw" />
+  
+</head>
+
+
+  <body>
+
+    <span class="mobile btn-mobile-menu">
+        <i class="fa fa-list btn-mobile-menu__icon"></i>
+        <i class="fa fa-angle-up btn-mobile-close__icon hidden"></i>
+    </span>
+    
+    <header class="panel-cover panel-cover--collapsed" style="background-image: url('/assets/images/background-cover.jpg')">
+  <div class="panel-main">
+
+    <div class="panel-main__inner panel-inverted">
+    <div class="panel-main__content">
+
+        <a href="/#blog" title="前往 cpselvis 的主页" class="blog-button"><img src="/assets/images/avatar.jpg" width="80" alt="cpselvis logo" class="panel-cover__logo logo" /></a>
+        <h1 class="panel-cover__title panel-title"><a href="/#blog" title="link to homepage for cpselvis" class="blog-button">cpselvis</a></h1>
+        
+        <span class="panel-cover__subtitle panel-subtitle">落花无言,人淡如菊,心素如简</span>
+        
+        <hr class="panel-cover__divider" />
+        <p class="panel-cover__description">嗨，我是程柳锋 (@cpselvis)，一名来自中国的 web 开发者。现居深圳，就职于 腾讯。目前负责研发规范和工程化建设，曾在OSC源创会上做过分享。</p>
+        <hr class="panel-cover__divider panel-cover__divider--secondary" />
+        
+        
+        
+        <div class="navigation-wrapper">
+          <div>
+            <nav class="cover-navigation cover-navigation--primary">
+              <ul class="navigation">
+                <li class="navigation__item"><a href="/#blog" title="Visit blog" class="blog-button">博客</a></li>
+                
+                  <li class="navigation__item"><a href="https://cpselvis.github.io/" target="_blank" title="My Projects">首页</a></li>
+                
+              </ul>
+            </nav>
+          </div>
+          
+          <div><nav class="cover-navigation navigation--social">
+  <ul class="navigation">
+
+  
+  <!-- Weibo -->
+  <li class="navigation__item">
+    <a href="http://weibo.com/cpselvis" title="@cpselvis 的微博" target="_blank">
+      <i class='social fa fa-weibo'></i>
+      <span class="label">Weibo</span>
+    </a>
+  </li>
+  
+
+  
+  <!-- Github -->
+  <li class="navigation__item">
+    <a href="https://github.com/cpselvis" title="@cpselvis 的 Github" target="_blank">
+      <i class='social fa fa-github'></i>
+      <span class="label">Github</span>
+    </a>
+  </li>
+  
+  
+  
+  <!-- Twitter -->
+  <li class="navigation__item">
+    <a href="http://twitter.com/cpselvis" title="@cpselvis" target="_blank">
+      <i class='social fa fa-twitter'></i>
+      <span class="label">Twitter</span>
+    </a>
+  </li>
+  
+
+  
+  <!-- Google Plus -->
+  <li class="navigation__item">
+    <a href="https://plus.google.com/104634663101299635957" rel="author" title="Google+" target="_blank">
+      <i class='social fa fa-google-plus-square'></i>
+      <span class="label">Google Plus</span>
+    </a>
+  </li>
+  
+
+  <!-- RSS -->
+  <li class="navigation__item">
+    <a href="/feed.xml" rel="author" title="RSS" target="_blank">
+      <i class='social fa fa-rss'></i>
+      <span class="label">RSS</span>
+    </a>
+  </li>
+
+  
+  <!-- Email -->
+  <li class="navigation__item">
+    <a href="mailto:cpselvis@gmail.com" title="Contact me">
+      <i class='social fa fa-envelope'></i>
+      <span class="label">Email</span>
+    </a>
+  </li>
+  
+
+  </ul>
+</nav>
+</div>
+        </div>
+      </div>
+    </div>
+    
+    
+    <div class="panel-cover--overlay cover-blue"></div>
+    
+  </div>
+</header>
+
+
+    <div class="content-wrapper">
+        <div class="content-wrapper__inner">
+            <article class="post-container post-container--single" itemscope itemtype="http://schema.org/BlogPosting">
+  <header class="post-header">
+    <div class="post-meta">
+      <time datetime="2017-05-31 21:13:24 +0800" itemprop="datePublished" class="post-meta__date date">2017-05-31</time> &#8226; <span class="post-meta__tags tags"></span>
+    </div>
+    <h1 class="post-title">编写原生的Node.js模块</h1>
+  </header>
+
+  <section class="post">
+    <blockquote>
+  <p>导语：当Javascript的性能遭遇瓶颈，或者需要增强Javascript能力的时候，就需要依赖native模块来实现了。</p>
+</blockquote>
+
+<h3 id="应用场景">应用场景</h3>
+<p>日常工作中，我们经常需要将原生的Node.js模块做为依赖并在项目中进行使用。下面有个列表，你可能对它们的名字很熟悉:</p>
+<ul>
+  <li><a href="https://github.com/sass/node-sass">node-sass</a> 将sass文件编译成css文件</li>
+  <li><a href="https://github.com/wadey/node-microtime">node-microtime</a>: 扩展Javascript的时间精度</li>
+  <li><a href="https://github.com/node-inspector">node-inspector</a>：进行调试</li>
+  <li><a href="https://github.com/node-inspector/v8-profiler">v8-profiler</a>：性能及内存使用分析</li>
+</ul>
+
+<p>通常，我们开发原生Node.js模块包括但不仅限于以下原因：</p>
+<ul>
+  <li>对性能有比较苛刻要求的应用。尽管Node.js得益于libuv，在异步I/O操作很有优势，但遇到数字计算时并不是一个很好的选择。</li>
+  <li>使用更加底层的API，比如操作系统层面的。</li>
+  <li>在C/C++和Node.js之间创建一个Bridge，进行通信。</li>
+</ul>
+
+<h3 id="什么是原生模块">什么是原生模块？</h3>
+<p>Node.js Addons是动态链接的可共享对象，由C/C++编写而成。可以在Node.js中通过<code class="highlighter-rouge">require()</code>方法进行调用，使用起来像调用Node.js普通模块一样。 —— 来自<a href="https://nodejs.org/dist/latest-v6.x/docs/api/addons.html#addons_c_c_addons">Node.js官方文档</a></p>
+
+<p>这意味着如果处理得当的话，模块调用者使用由C/C++编写的原生模块的方式和由Node.js编写的模块一样。想要编写Node.js addons，你需要了解一些基本知识：</p>
+<ul>
+  <li><a href="http://docs.libuv.org/en/v1.x/">Libuv</a></li>
+  <li><a href="https://github.com/v8/v8/wiki">V8</a></li>
+  <li><a href="https://nodejs.org/api/">Node.js internals</a></li>
+</ul>
+
+<p>推荐阅读这些资料。</p>
+
+<h3 id="创建nodejs的原生扩展模块">创建Node.js的原生扩展模块</h3>
+<p>下面我以一个常见的动态规划问题-青蛙跳台阶为例子来说明如何创建一个原生的Node.js模块。青蛙跳台阶描述为：一只青蛙一次可以跳上一级台阶，也可以跳上2级台阶，求该青蛙跳上n级台阶的共有多少种跳法？</p>
+
+<p>首先创建一个frog_jump.cc原生文件，.cc的意思是c with class，扩展名也可以是.cpp。<a href="https://google.github.io/styleguide/cppguide.html">Google Style Guide</a>建议使用.cc，那么此处还是以.cc做为扩展名吧。代码如下：</p>
+<div class="language-cpp highlighter-rouge"><pre class="highlight"><code><span class="cp">#include &lt;node.h&gt;
+#include&lt;vector&gt;
+</span>
+<span class="cm">/**
+ * Native method, calculate all ways frog jump to a target stair.
+ */</span>
+<span class="kt">int</span> <span class="nf">climbStairs</span><span class="p">(</span><span class="kt">int</span> <span class="n">n</span><span class="p">)</span> <span class="p">{</span>
+  <span class="n">std</span><span class="o">::</span><span class="n">vector</span><span class="o">&lt;</span><span class="kt">int</span><span class="o">&gt;</span> <span class="n">dp</span><span class="p">(</span><span class="n">n</span><span class="p">);</span>
+
+  <span class="n">dp</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">=</span> <span class="mi">1</span><span class="p">;</span>
+  <span class="n">dp</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span> <span class="o">=</span> <span class="mi">2</span><span class="p">;</span>
+
+  <span class="k">for</span> <span class="p">(</span><span class="kt">int</span> <span class="n">i</span> <span class="o">=</span> <span class="mi">3</span><span class="p">;</span> <span class="n">i</span> <span class="o">&lt;=</span> <span class="n">n</span><span class="p">;</span> <span class="n">i</span> <span class="o">++</span> <span class="p">)</span> <span class="p">{</span>
+    <span class="n">dp</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="n">dp</span><span class="p">[</span><span class="n">i</span> <span class="o">-</span> <span class="mi">1</span><span class="p">]</span> <span class="o">+</span> <span class="n">dp</span><span class="p">[</span><span class="n">i</span> <span class="o">-</span> <span class="mi">2</span><span class="p">];</span>
+  <span class="p">}</span>
+  <span class="k">return</span> <span class="n">dp</span><span class="p">[</span><span class="n">n</span><span class="p">];</span>
+<span class="p">}</span>
+
+<span class="cm">/**
+ * Export native method jumpTo
+ */</span>
+<span class="kt">void</span> <span class="nf">JumpTo</span><span class="p">(</span><span class="k">const</span> <span class="n">v8</span><span class="o">::</span><span class="n">FunctionCallbackInfo</span><span class="o">&lt;</span><span class="n">v8</span><span class="o">::</span><span class="n">Value</span><span class="o">&gt;&amp;</span> <span class="n">args</span><span class="p">)</span> <span class="p">{</span>
+  <span class="n">v8</span><span class="o">::</span><span class="n">Isolate</span><span class="o">*</span> <span class="n">isolate</span> <span class="o">=</span> <span class="n">args</span><span class="p">.</span><span class="n">GetIsolate</span><span class="p">();</span>
+
+  <span class="c1">// Check input type
+</span>  <span class="k">if</span> <span class="p">(</span><span class="o">!</span><span class="n">args</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">-&gt;</span> <span class="n">IsNumber</span><span class="p">())</span> <span class="p">{</span>
+    <span class="n">isolate</span> <span class="o">-&gt;</span> <span class="n">ThrowException</span><span class="p">(</span><span class="n">v8</span><span class="o">::</span><span class="n">Exception</span><span class="o">::</span><span class="n">TypeError</span><span class="p">(</span>
+      <span class="n">v8</span><span class="o">::</span><span class="n">String</span><span class="o">::</span><span class="n">NewFromUtf8</span><span class="p">(</span><span class="n">isolate</span><span class="p">,</span> <span class="s">"Wrong arguments type!"</span><span class="p">)));</span>
+  <span class="p">}</span>
+
+  <span class="kt">int</span> <span class="n">value</span> <span class="o">=</span> <span class="n">climbStairs</span><span class="p">(</span><span class="n">args</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">-&gt;</span> <span class="n">NumberValue</span><span class="p">());</span>
+  <span class="n">v8</span><span class="o">::</span><span class="n">Local</span><span class="o">&lt;</span><span class="n">v8</span><span class="o">::</span><span class="n">Number</span><span class="o">&gt;</span> <span class="n">num</span> <span class="o">=</span> <span class="n">v8</span><span class="o">::</span><span class="n">Number</span><span class="o">::</span><span class="n">New</span><span class="p">(</span><span class="n">isolate</span><span class="p">,</span> <span class="n">value</span><span class="p">);</span>
+
+  <span class="n">args</span><span class="p">.</span><span class="n">GetReturnValue</span><span class="p">().</span><span class="n">Set</span><span class="p">(</span><span class="n">num</span><span class="p">);</span>
+<span class="p">}</span>
+
+<span class="c1">// init is entry point.
+</span><span class="kt">void</span> <span class="nf">init</span><span class="p">(</span><span class="n">v8</span><span class="o">::</span><span class="n">Local</span><span class="o">&lt;</span><span class="n">v8</span><span class="o">::</span><span class="n">Object</span><span class="o">&gt;</span> <span class="n">exports</span><span class="p">)</span> <span class="p">{</span>
+  <span class="n">NODE_SET_METHOD</span><span class="p">(</span><span class="n">exports</span><span class="p">,</span> <span class="s">"jumpTo"</span><span class="p">,</span> <span class="n">JumpTo</span><span class="p">);</span>
+<span class="p">}</span>
+
+<span class="n">NODE_MODULE</span><span class="p">(</span><span class="n">frog_jump</span><span class="p">,</span> <span class="n">init</span><span class="p">)</span>
+</code></pre>
+</div>
+
+<p>对这段代码的解释：</p>
+<ul>
+  <li>#include “node.h” 是c++里面引入头文件的方式，具体源码：<a href="https://github.com/nodejs/node/blob/master/src/node.h">node.h</a>，C++链接时会加载这个头文件。头文件里面引入了v8命名空间，我们可以通过<code class="highlighter-rouge">v8::</code>标志来访问v8的接口。访问所有v8的类型，都需要使用v8::标志</li>
+  <li>通过args对象来访问Node.js传递过来的参数，通过args也可以获取调用相关信息。</li>
+  <li>通过v8::Isolate*可以获取函数作用域，可以像JS里面一样进行变量赋值，而不用担心垃圾回收问题，垃圾回收器会自动进行。</li>
+  <li>args.GetReturnValue()可以对函数返回的结果进行设置。</li>
+  <li>任何原生Node.js模块都需要调用NODE_MODULE，NODE_MODULE是一个宏，它会进行模块注册操作。</li>
+  <li>C++ 有丰富的内置类型来保存数字或者字符串，但是JS只能识别v8::里面定义的类型。因此，将c++的变量赋值给JS时，需要转换成可以被JS识别的类型，也即是v8::定义的类型。比如v8::String、v8::Object。</li>
+</ul>
+
+<h3 id="编译原生的nodejs模块">编译原生的Node.js模块</h3>
+<p>一旦源代码编写完成，需要将它编译成二进制的<code class="highlighter-rouge">addon.node</code>文件，之后才能被Node.js require。为了完成编译操作，需要在项目的根目录创建binding.gyp文件，里面定义了Build的配置。binding.gyp的内容是一个JSON。</p>
+
+<div class="language-shell highlighter-rouge"><pre class="highlight"><code><span class="o">{</span>
+  <span class="s2">"targets"</span>: <span class="o">[</span>
+    <span class="o">{</span>
+      <span class="s2">"target_name"</span>: <span class="s2">"frog_jump"</span>,
+      <span class="s2">"sources"</span>: <span class="o">[</span> <span class="s2">"frog_jump.cc"</span> <span class="o">]</span>
+    <span class="o">}</span>
+  <span class="o">]</span>
+<span class="o">}</span>
+</code></pre>
+</div>
+
+<p>编译环境配置：</p>
+<ul>
+  <li>windows: 以管理员的身份运行npm install –global –production windows-build-tools，这个会安装所有编译依赖的工具。</li>
+  <li>linux: 安装python <a href="https://www.python.org/download/releases/2.7/">v2.7</a>、<a href="https://www.gnu.org/software/make/">make</a>和<a href="https://gcc.gnu.org/">GCC</a></li>
+  <li>osx: 安装xcode</li>
+</ul>
+
+<p>虽然npm内置了一个node-gyp版本，但是这个版本没有开放给开发者进行调用。npm install的时候会调用它来进行编译和安装工作。因此，开发者想要调用node-gyp必须自己安装一个全局的node-gyp版本。</p>
+
+<div class="language-sh highlighter-rouge"><pre class="highlight"><code><span class="gp">$ </span>npm install node-gyp -g
+<span class="gp">$ </span>node-gyp configure
+<span class="gp">$ </span>node-gyp build
+</code></pre>
+</div>
+<p>运行node-gyp configure命令会生成一个跨平台的build文件，unix环境会生成Makefile，windows环境会在build目录里面生成vcxproj。
+运行node-gyp build命令会生成可被Node.js调动的addon.node二进制文件。</p>
+
+<h3 id="nodejs中调用原生模块">Node.js中调用原生模块</h3>
+<div class="language-javascript highlighter-rouge"><pre class="highlight"><code><span class="kr">const</span> <span class="nx">frogJump</span> <span class="o">=</span> <span class="nx">require</span><span class="p">(</span><span class="s1">'./build/Release/frog_jump'</span><span class="p">);</span>
+
+<span class="nx">frogJump</span><span class="p">.</span><span class="nx">jumpTo</span><span class="p">(</span><span class="mi">20</span><span class="p">);</span>  <span class="c1">//青蛙跳到第20个台阶的所有方法</span>
+</code></pre>
+</div>
+<p>项目源代码：<a href="https://github.com/cpselvis/frog-jump">frog-jump</a></p>
+
+<h3 id="后续">后续</h3>
+<p><a href="https://github.com/nodejs/nan">nan</a>，即Native Abstractions for Node.js。它基于Node.js API接口，兼容所有Node版本，目前的最佳实践是基于nan来扩展原生模块，而不是直接使用Node.js API。
+<a href="https://nodejs.org/api/n-api.html">N-API</a>，Node官方推出的用来编写原生Node扩展模块，是V8和nan的替代，目前处于实验阶段。</p>
+
+  </section>
+</article>
+
+<section class="read-more">
+   
+   
+   <div class="read-more-item">
+       <span class="read-more-item-dim">最近的文章</span>
+       <h2 class="post-list__post-title post-title"><a href="/2017/06/python%E7%BC%96%E5%86%99%E7%9F%A5%E4%B9%8E%E7%88%AC%E8%99%AB%E5%AE%9E%E8%B7%B5/" title="link to python编写知乎爬虫实践">python编写知乎爬虫实践</a></h2>
+       <p class="excerpt">爬虫的基本流程网络爬虫的基本工作流程如下：  首先选取一部分精心挑选的种子URL  将种子URL加入任务队列  从待抓取URL队列中取出待抓取的URL，解析DNS，并且得到主机的ip，并将URL对应的网页下载下来，存储进已下载网页库中。此外，将这些URL放进已抓取URL队列。  分析已抓取URL队列中的URL，分析其中的其他URL，并且将URL放入待抓取URL队列，从而进入下一个循环。  解析下载下来的网页，将需要的数据解析出来。  数据持久话，保存至数据库中。爬虫的抓取策略在爬虫系统中，...&hellip;</p>
+       <div class="post-list__meta"><time datetime="2017-06-13 15:18:24 +0800" class="post-list__meta--date date">2017-06-13</time> &#8226; <span class="post-list__meta--tags tags"></span><a class="btn-border-small" href=/2017/06/python%E7%BC%96%E5%86%99%E7%9F%A5%E4%B9%8E%E7%88%AC%E8%99%AB%E5%AE%9E%E8%B7%B5/>继续阅读</a></div>
+   </div>
+   
+   
+   
+   
+   <div class="read-more-item">
+       <span class="read-more-item-dim">更早的文章</span>
+       <h2 class="post-list__post-title post-title"><a href="/2017/03/%E4%BD%BF%E7%94%A8Yeoman-generator%E6%9D%A5%E8%A7%84%E8%8C%83%E5%B7%A5%E7%A8%8B%E7%9A%84%E5%88%9D%E5%A7%8B%E5%8C%96/" title="link to 使用Yeoman generator来规范工程的初始化">使用Yeoman generator来规范工程的初始化</a></h2>
+       <p class="excerpt">前言  随着开发团队不断发展壮大，在人员增加的同时也带来了协作成本的增加；业务项目越来越多，类型也各不相同。常见的类型有基础组件、业务组件、基于React的业务项目、基于Vue的业务项目等等。如果想要对每个项目进行一些规范上的约束比如Git提交规范、Javascript规范简直难于登天。所有的这些，只是因为还欠缺一个好用的工程化工具，在项目创建的初期自动的将这些目录结构和文件生成、并且集成工程常见的规范来进行约束。本文分为两部分，首先会谈谈目前团队的痛点以及基于yeoman generat...&hellip;</p>
+       <div class="post-list__meta"><time datetime="2017-03-27 22:25:24 +0800" class="post-list__meta--date date">2017-03-27</time> &#8226; <span class="post-list__meta--tags tags"></span><a class="btn-border-small" href=/2017/03/%E4%BD%BF%E7%94%A8Yeoman-generator%E6%9D%A5%E8%A7%84%E8%8C%83%E5%B7%A5%E7%A8%8B%E7%9A%84%E5%88%9D%E5%A7%8B%E5%8C%96/>继续阅读</a></div>
+   </div>
+   
+</section>
+
+<section class="post-comments">
+  
+    <div id="disqus_thread"></div>
+    <script>
+    
+    var disqus_config = function () {
+        this.page.url = "http://localhost:4000/2017/05/%E7%BC%96%E5%86%99%E5%8E%9F%E7%94%9F%E7%9A%84Node.js%E6%A8%A1%E5%9D%97/";
+        this.page.identifier = "/2017/05/%E7%BC%96%E5%86%99%E5%8E%9F%E7%94%9F%E7%9A%84Node.js%E6%A8%A1%E5%9D%97/";
+    };
+
+    var disqus_shortname = 'vno-jekyll';
+    
+    (function() { // DON'T EDIT BELOW THIS LINE
+        var d = document, s = d.createElement('script');
+        s.src = '//' + disqus_shortname + '.disqus.com/embed.js';
+        s.setAttribute('data-timestamp', +new Date());
+            (d.head || d.body).appendChild(s);
+        })();
+    </script>
+    <noscript>要查看<a href="http://disqus.com/?ref_noscript"> Disqus </a>评论，请启用 JavaScript</noscript>
+    
+  
+  
+  
+  
+</section>
+
+
+            <section class="footer">
+    <footer>
+    	<span class="footer__copyright">本站点采用<a href="http://creativecommons.org/licenses/by-nc-sa/4.0/">知识共享 署名-非商业性使用-相同方式共享 4.0 国际 许可协议</a></span>
+        <span class="footer__copyright">由 <a href="https://jekyllrb.com">Jekyll</a> 于 2017-10-08 生成，感谢 <a href="https://www.digitalocean.com/?refcode=30ed2d146762">Digital Ocean</a> 为本站提供稳定的 VPS 服务</span>
+        <span class="footer__copyright">本站由 <a href="https://cpselvis.github.io">@cpselvis</a> 创建，采用 <a href="https://github.com/onevcat/vno-jekyll">Vno - Jekyll</a> 作为主题，您可以在 GitHub 找到<a href="https://github.com/onevcat/OneV-s-Den">本站源码</a> - &copy; 2017</span>
+    </footer>
+</section>
+
+        </div>
+    </div>
+    
+    <script type="text/javascript" src="//code.jquery.com/jquery-1.11.3.min.js"></script>
+
+<script type="text/javascript" src="/js/main.js"></script>
+
+
+
+    
+  </body>
+
+</html>

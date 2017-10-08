@@ -1,0 +1,457 @@
+<!DOCTYPE html>
+<html>
+
+  <head>
+  <meta charset="utf-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+
+  <title>python编写知乎爬虫实践</title>
+  <meta name="description" content="爬虫的基本流程">
+  <meta name="author" content="Wei Wang">
+
+  <meta name="twitter:card" content="summary">
+  <meta name="twitter:title" content="python编写知乎爬虫实践">
+  <meta name="twitter:description" content="爬虫的基本流程">
+  
+  <meta property="og:type" content="article">
+  <meta property="og:title" content="python编写知乎爬虫实践">
+  <meta property="og:description" content="爬虫的基本流程">
+  
+  <link rel="icon" type="image/png" href="/assets/images/favicon.png" />
+  <link href="/assets/images/favicon.png" rel="shortcut icon" type="image/png">
+  
+  <link rel="stylesheet" href="/css/main.css">
+  <link href="//netdna.bootstrapcdn.com/font-awesome/4.1.0/css/font-awesome.min.css" rel="stylesheet">
+
+  <link rel="canonical" href="http://localhost:4000/2017/06/python%E7%BC%96%E5%86%99%E7%9F%A5%E4%B9%8E%E7%88%AC%E8%99%AB%E5%AE%9E%E8%B7%B5/">
+  <link rel="alternate" type="application/rss+xml" title="cpselvis" href="http://localhost:4000/feed.xml">
+  
+  <meta name="google-site-verification" content="1-1ZlHoRvM0T2FqPbW2S-qLgYXN6rsn52kErlMPd_gw" />
+  
+</head>
+
+
+  <body>
+
+    <span class="mobile btn-mobile-menu">
+        <i class="fa fa-list btn-mobile-menu__icon"></i>
+        <i class="fa fa-angle-up btn-mobile-close__icon hidden"></i>
+    </span>
+    
+    <header class="panel-cover panel-cover--collapsed" style="background-image: url('/assets/images/background-cover.jpg')">
+  <div class="panel-main">
+
+    <div class="panel-main__inner panel-inverted">
+    <div class="panel-main__content">
+
+        <a href="/#blog" title="前往 cpselvis 的主页" class="blog-button"><img src="/assets/images/avatar.jpg" width="80" alt="cpselvis logo" class="panel-cover__logo logo" /></a>
+        <h1 class="panel-cover__title panel-title"><a href="/#blog" title="link to homepage for cpselvis" class="blog-button">cpselvis</a></h1>
+        
+        <span class="panel-cover__subtitle panel-subtitle">落花无言,人淡如菊,心素如简</span>
+        
+        <hr class="panel-cover__divider" />
+        <p class="panel-cover__description">嗨，我是程柳锋 (@cpselvis)，一名来自中国的 web 开发者。现居深圳，就职于 腾讯。目前负责研发规范和工程化建设，曾在OSC源创会上做过分享。</p>
+        <hr class="panel-cover__divider panel-cover__divider--secondary" />
+        
+        
+        
+        <div class="navigation-wrapper">
+          <div>
+            <nav class="cover-navigation cover-navigation--primary">
+              <ul class="navigation">
+                <li class="navigation__item"><a href="/#blog" title="Visit blog" class="blog-button">博客</a></li>
+                
+                  <li class="navigation__item"><a href="https://cpselvis.github.io/" target="_blank" title="My Projects">首页</a></li>
+                
+              </ul>
+            </nav>
+          </div>
+          
+          <div><nav class="cover-navigation navigation--social">
+  <ul class="navigation">
+
+  
+  <!-- Weibo -->
+  <li class="navigation__item">
+    <a href="http://weibo.com/cpselvis" title="@cpselvis 的微博" target="_blank">
+      <i class='social fa fa-weibo'></i>
+      <span class="label">Weibo</span>
+    </a>
+  </li>
+  
+
+  
+  <!-- Github -->
+  <li class="navigation__item">
+    <a href="https://github.com/cpselvis" title="@cpselvis 的 Github" target="_blank">
+      <i class='social fa fa-github'></i>
+      <span class="label">Github</span>
+    </a>
+  </li>
+  
+  
+  
+  <!-- Twitter -->
+  <li class="navigation__item">
+    <a href="http://twitter.com/cpselvis" title="@cpselvis" target="_blank">
+      <i class='social fa fa-twitter'></i>
+      <span class="label">Twitter</span>
+    </a>
+  </li>
+  
+
+  
+  <!-- Google Plus -->
+  <li class="navigation__item">
+    <a href="https://plus.google.com/104634663101299635957" rel="author" title="Google+" target="_blank">
+      <i class='social fa fa-google-plus-square'></i>
+      <span class="label">Google Plus</span>
+    </a>
+  </li>
+  
+
+  <!-- RSS -->
+  <li class="navigation__item">
+    <a href="/feed.xml" rel="author" title="RSS" target="_blank">
+      <i class='social fa fa-rss'></i>
+      <span class="label">RSS</span>
+    </a>
+  </li>
+
+  
+  <!-- Email -->
+  <li class="navigation__item">
+    <a href="mailto:cpselvis@gmail.com" title="Contact me">
+      <i class='social fa fa-envelope'></i>
+      <span class="label">Email</span>
+    </a>
+  </li>
+  
+
+  </ul>
+</nav>
+</div>
+        </div>
+      </div>
+    </div>
+    
+    
+    <div class="panel-cover--overlay cover-blue"></div>
+    
+  </div>
+</header>
+
+
+    <div class="content-wrapper">
+        <div class="content-wrapper__inner">
+            <article class="post-container post-container--single" itemscope itemtype="http://schema.org/BlogPosting">
+  <header class="post-header">
+    <div class="post-meta">
+      <time datetime="2017-06-13 15:18:24 +0800" itemprop="datePublished" class="post-meta__date date">2017-06-13</time> &#8226; <span class="post-meta__tags tags"></span>
+    </div>
+    <h1 class="post-title">python编写知乎爬虫实践</h1>
+  </header>
+
+  <section class="post">
+    <h3 id="爬虫的基本流程">爬虫的基本流程</h3>
+
+<p><img src="http://images2015.cnblogs.com/blog/1030776/201701/1030776-20170106154850769-354312570.png" alt="" /></p>
+
+<p>网络爬虫的基本工作流程如下：</p>
+<ul>
+  <li>首先选取一部分精心挑选的种子URL</li>
+  <li>将种子URL加入任务队列</li>
+  <li>从待抓取URL队列中取出待抓取的URL，解析DNS，并且得到主机的ip，并将URL对应的网页下载下来，存储进已下载网页库中。此外，将这些URL放进已抓取URL队列。</li>
+  <li>分析已抓取URL队列中的URL，分析其中的其他URL，并且将URL放入待抓取URL队列，从而进入下一个循环。</li>
+  <li>解析下载下来的网页，将需要的数据解析出来。</li>
+  <li>数据持久话，保存至数据库中。</li>
+</ul>
+
+<h3 id="爬虫的抓取策略">爬虫的抓取策略</h3>
+<p>在爬虫系统中，待抓取URL队列是很重要的一部分。待抓取URL队列中的URL以什么样的顺序排列也是一个很重要的问题，因为这涉及到先抓取那个页面，后抓取哪个页面。而决定这些URL排列顺序的方法，叫做抓取策略。下面重点介绍几种常见的抓取策略：</p>
+
+<p><img src="http://images2015.cnblogs.com/blog/1030776/201701/1030776-20170106200044003-2044243273.jpg" alt="" /></p>
+
+<ul>
+  <li>深度优先策略(DFS)
+深度优先策略是指爬虫从某个URL开始，一个链接一个链接的爬取下去，直到处理完了某个链接所在的所有线路，才切换到其它的线路。
+此时抓取顺序为：A -&gt; B -&gt; C -&gt; D -&gt; E -&gt; F -&gt; G -&gt; H -&gt; I -&gt; J</li>
+  <li>广度优先策略(BFS)
+宽度优先遍历策略的基本思路是，将新下载网页中发现的链接直接插入待抓取URL队列的末尾。也就是指网络爬虫会先抓取起始网页中链接的所有网页，然后再选择其中的一个链接网页，继续抓取在此网页中链接的所有网页。
+此时抓取顺序为：A -&gt; B -&gt; E -&gt; G -&gt; H -&gt; I -&gt; C -&gt; F -&gt; J -&gt; D</li>
+</ul>
+
+<p>了解了爬虫的工作流程和爬取策略后，就可以动手实现一个爬虫了！那么在python里怎么实现呢？</p>
+
+<h3 id="技术栈">技术栈</h3>
+<ul>
+  <li><a href="https://github.com/kennethreitz/requests">requests</a>  人性化的请求发送</li>
+  <li><a href="https://en.wikipedia.org/wiki/Bloom_filter">Bloom Filter</a> 布隆过滤器，用于判重</li>
+  <li><a href="https://en.wikipedia.org/wiki/XPath">XPath</a> 解析HTML内容</li>
+  <li><a href="https://en.wikipedia.org/wiki/MurmurHash">murmurhash</a></li>
+  <li>Anti crawler strategy 反爬虫策略</li>
+  <li>MySQL 用户数据存储</li>
+</ul>
+
+<h3 id="基本实现">基本实现</h3>
+
+<p>下面是一个伪代码</p>
+<div class="language-python highlighter-rouge"><pre class="highlight"><code><span class="kn">import</span> <span class="nn">Queue</span>
+
+<span class="n">initial_page</span> <span class="o">=</span> <span class="s">"https://www.zhihu.com/people/gaoming623"</span>
+
+<span class="n">url_queue</span> <span class="o">=</span> <span class="n">Queue</span><span class="o">.</span><span class="n">Queue</span><span class="p">()</span>
+<span class="n">seen</span> <span class="o">=</span> <span class="nb">set</span><span class="p">()</span>
+
+<span class="n">seen</span><span class="o">.</span><span class="n">insert</span><span class="p">(</span><span class="n">initial_page</span><span class="p">)</span>
+<span class="n">url_queue</span><span class="o">.</span><span class="n">put</span><span class="p">(</span><span class="n">initial_page</span><span class="p">)</span>
+
+<span class="k">while</span><span class="p">(</span><span class="bp">True</span><span class="p">):</span> <span class="c">#一直进行</span>
+    <span class="k">if</span> <span class="n">url_queue</span><span class="o">.</span><span class="n">size</span><span class="p">()</span><span class="o">&gt;</span><span class="mi">0</span><span class="p">:</span>
+        <span class="n">current_url</span> <span class="o">=</span> <span class="n">url_queue</span><span class="o">.</span><span class="n">get</span><span class="p">()</span>              <span class="c">#拿出队例中第一个的url</span>
+        <span class="n">store</span><span class="p">(</span><span class="n">current_url</span><span class="p">)</span>                         <span class="c">#把这个url代表的网页存储好</span>
+        <span class="k">for</span> <span class="n">next_url</span> <span class="ow">in</span> <span class="n">extract_urls</span><span class="p">(</span><span class="n">current_url</span><span class="p">):</span> <span class="c">#提取把这个url里链向的url</span>
+            <span class="k">if</span> <span class="n">next_url</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">seen</span><span class="p">:</span>      
+                <span class="n">seen</span><span class="o">.</span><span class="n">put</span><span class="p">(</span><span class="n">next_url</span><span class="p">)</span>
+                <span class="n">url_queue</span><span class="o">.</span><span class="n">put</span><span class="p">(</span><span class="n">next_url</span><span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="k">break</span>
+</code></pre>
+</div>
+
+<p>如果你直接加工一下上面的代码直接运行的话，你需要很长的时间才能爬下整个知乎用户的信息，毕竟知乎有6000万月活跃用户。更别说Google这样的搜索引擎需要爬下全网的内容了。那么问题出现在哪里？</p>
+
+<h3 id="布隆过滤器">布隆过滤器</h3>
+<p>需要爬的网页实在太多太多了，而上面的代码太慢太慢了。设想全网有N个网站，那么分析一下判重的复杂度就是N*log(N)，因为所有网页要遍历一次，而每次判重用set的话需要log(N)的复杂度。OK，我知道python的set实现是hash——不过这样还是太慢了，至少内存使用效率不高。</p>
+
+<p>通常的判重做法是怎样呢？Bloom Filter. 简单讲它仍然是一种hash的方法，但是它的特点是，它可以使用固定的内存（不随url的数量而增长）以O(1)的效率判定url是否已经在set中。可惜天下没有白吃的午餐，它的唯一问题在于，如果这个url不在set中，BF可以100%确定这个url没有看过。但是如果这个url在set中，它会告诉你：这个url应该已经出现过，不过我有2%的不确定性。注意这里的不确定性在你分配的内存足够大的时候，可以变得很小很少。</p>
+
+<div class="language-python highlighter-rouge"><pre class="highlight"><code>
+<span class="c"># bloom_filter.py</span>
+
+<span class="n">BIT_SIZE</span> <span class="o">=</span> <span class="mi">5000000</span>
+
+<span class="k">class</span> <span class="nc">BloomFilter</span><span class="p">:</span>
+
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="c"># Initialize bloom filter, set size and all bits to 0</span>
+        <span class="n">bit_array</span> <span class="o">=</span> <span class="n">bitarray</span><span class="p">(</span><span class="n">BIT_SIZE</span><span class="p">)</span>
+        <span class="n">bit_array</span><span class="o">.</span><span class="n">setall</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">bit_array</span> <span class="o">=</span> <span class="n">bit_array</span>
+
+    <span class="k">def</span> <span class="nf">add</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">url</span><span class="p">):</span>
+        <span class="c"># Add a url, and set points in bitarray to 1 (Points count is equal to hash funcs count.)</span>
+        <span class="c"># Here use 7 hash functions.</span>
+        <span class="n">point_list</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_postions</span><span class="p">(</span><span class="n">url</span><span class="p">)</span>
+
+        <span class="k">for</span> <span class="n">b</span> <span class="ow">in</span> <span class="n">point_list</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">bit_array</span><span class="p">[</span><span class="n">b</span><span class="p">]</span> <span class="o">=</span> <span class="mi">1</span>
+
+    <span class="k">def</span> <span class="nf">contains</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">url</span><span class="p">):</span>
+        <span class="c"># Check if a url is in a collection</span>
+        <span class="n">point_list</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_postions</span><span class="p">(</span><span class="n">url</span><span class="p">)</span>
+
+        <span class="n">result</span> <span class="o">=</span> <span class="bp">True</span>
+        <span class="k">for</span> <span class="n">b</span> <span class="ow">in</span> <span class="n">point_list</span><span class="p">:</span>
+            <span class="n">result</span> <span class="o">=</span> <span class="n">result</span> <span class="ow">and</span> <span class="bp">self</span><span class="o">.</span><span class="n">bit_array</span><span class="p">[</span><span class="n">b</span><span class="p">]</span>
+
+        <span class="k">return</span> <span class="n">result</span>
+
+    <span class="k">def</span> <span class="nf">get_postions</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">url</span><span class="p">):</span>
+        <span class="c"># Get points positions in bit vector.</span>
+        <span class="n">point1</span> <span class="o">=</span> <span class="n">mmh3</span><span class="o">.</span><span class="nb">hash</span><span class="p">(</span><span class="n">url</span><span class="p">,</span> <span class="mi">41</span><span class="p">)</span> <span class="o">%</span> <span class="n">BIT_SIZE</span>
+        <span class="n">point2</span> <span class="o">=</span> <span class="n">mmh3</span><span class="o">.</span><span class="nb">hash</span><span class="p">(</span><span class="n">url</span><span class="p">,</span> <span class="mi">42</span><span class="p">)</span> <span class="o">%</span> <span class="n">BIT_SIZE</span>
+        <span class="n">point3</span> <span class="o">=</span> <span class="n">mmh3</span><span class="o">.</span><span class="nb">hash</span><span class="p">(</span><span class="n">url</span><span class="p">,</span> <span class="mi">43</span><span class="p">)</span> <span class="o">%</span> <span class="n">BIT_SIZE</span>
+        <span class="n">point4</span> <span class="o">=</span> <span class="n">mmh3</span><span class="o">.</span><span class="nb">hash</span><span class="p">(</span><span class="n">url</span><span class="p">,</span> <span class="mi">44</span><span class="p">)</span> <span class="o">%</span> <span class="n">BIT_SIZE</span>
+        <span class="n">point5</span> <span class="o">=</span> <span class="n">mmh3</span><span class="o">.</span><span class="nb">hash</span><span class="p">(</span><span class="n">url</span><span class="p">,</span> <span class="mi">45</span><span class="p">)</span> <span class="o">%</span> <span class="n">BIT_SIZE</span>
+        <span class="n">point6</span> <span class="o">=</span> <span class="n">mmh3</span><span class="o">.</span><span class="nb">hash</span><span class="p">(</span><span class="n">url</span><span class="p">,</span> <span class="mi">46</span><span class="p">)</span> <span class="o">%</span> <span class="n">BIT_SIZE</span>
+        <span class="n">point7</span> <span class="o">=</span> <span class="n">mmh3</span><span class="o">.</span><span class="nb">hash</span><span class="p">(</span><span class="n">url</span><span class="p">,</span> <span class="mi">47</span><span class="p">)</span> <span class="o">%</span> <span class="n">BIT_SIZE</span>
+
+
+        <span class="k">return</span> <span class="p">[</span><span class="n">point1</span><span class="p">,</span> <span class="n">point2</span><span class="p">,</span> <span class="n">point3</span><span class="p">,</span> <span class="n">point4</span><span class="p">,</span> <span class="n">point5</span><span class="p">,</span> <span class="n">point6</span><span class="p">,</span> <span class="n">point7</span><span class="p">]</span>
+</code></pre>
+</div>
+
+<p>BF详细的原理参考我之前写的文章：<a href="http://www.cnblogs.com/cpselvis/p/6265825.html">布隆过滤器(Bloom Filter)的原理和实现</a></p>
+
+<h3 id="建表">建表</h3>
+<p>用户有价值的信息包括用户名、简介、行业、院校、专业及在平台上活动的数据比如回答数、文章数、提问数、粉丝数等等。</p>
+
+<p>用户信息存储的表结构如下：</p>
+<div class="language-sql highlighter-rouge"><pre class="highlight"><code><span class="k">CREATE</span> <span class="k">DATABASE</span> <span class="nv">`zhihu_user`</span> <span class="cm">/*!40100 DEFAULT CHARACTER SET utf8 */</span><span class="p">;</span>
+
+
+<span class="c1">-- User base information table</span>
+<span class="k">CREATE</span> <span class="k">TABLE</span> <span class="nv">`t_user`</span> <span class="p">(</span>
+  <span class="nv">`uid`</span> <span class="n">bigint</span><span class="p">(</span><span class="mi">20</span><span class="p">)</span> <span class="n">unsigned</span> <span class="k">NOT</span> <span class="k">NULL</span> <span class="n">AUTO_INCREMENT</span><span class="p">,</span>
+  <span class="nv">`username`</span> <span class="n">varchar</span><span class="p">(</span><span class="mi">50</span><span class="p">)</span> <span class="k">NOT</span> <span class="k">NULL</span> <span class="k">COMMENT</span> <span class="s1">'用户名'</span><span class="p">,</span>                      
+  <span class="nv">`brief_info`</span> <span class="n">varchar</span><span class="p">(</span><span class="mi">400</span><span class="p">)</span>  <span class="k">COMMENT</span> <span class="s1">'个人简介'</span><span class="p">,</span>
+  <span class="nv">`industry`</span> <span class="n">varchar</span><span class="p">(</span><span class="mi">50</span><span class="p">)</span> <span class="k">COMMENT</span> <span class="s1">'所处行业'</span><span class="p">,</span>             
+  <span class="nv">`education`</span> <span class="n">varchar</span><span class="p">(</span><span class="mi">50</span><span class="p">)</span> <span class="k">COMMENT</span> <span class="s1">'毕业院校'</span><span class="p">,</span>             
+  <span class="nv">`major`</span> <span class="n">varchar</span><span class="p">(</span><span class="mi">50</span><span class="p">)</span> <span class="k">COMMENT</span> <span class="s1">'主修专业'</span><span class="p">,</span>
+  <span class="nv">`answer_count`</span> <span class="n">int</span><span class="p">(</span><span class="mi">10</span><span class="p">)</span> <span class="n">unsigned</span> <span class="k">DEFAULT</span> <span class="mi">0</span> <span class="k">COMMENT</span> <span class="s1">'回答数'</span><span class="p">,</span>
+  <span class="nv">`article_count`</span> <span class="n">int</span><span class="p">(</span><span class="mi">10</span><span class="p">)</span> <span class="n">unsigned</span> <span class="k">DEFAULT</span> <span class="mi">0</span> <span class="k">COMMENT</span> <span class="s1">'文章数'</span><span class="p">,</span>
+  <span class="nv">`ask_question_count`</span> <span class="n">int</span><span class="p">(</span><span class="mi">10</span><span class="p">)</span> <span class="n">unsigned</span> <span class="k">DEFAULT</span> <span class="mi">0</span> <span class="k">COMMENT</span> <span class="s1">'提问数'</span><span class="p">,</span>
+  <span class="nv">`collection_count`</span> <span class="n">int</span><span class="p">(</span><span class="mi">10</span><span class="p">)</span> <span class="n">unsigned</span> <span class="k">DEFAULT</span> <span class="mi">0</span> <span class="k">COMMENT</span> <span class="s1">'收藏数'</span><span class="p">,</span>
+  <span class="nv">`follower_count`</span> <span class="n">int</span><span class="p">(</span><span class="mi">10</span><span class="p">)</span> <span class="n">unsigned</span> <span class="k">DEFAULT</span> <span class="mi">0</span> <span class="k">COMMENT</span> <span class="s1">'被关注数'</span><span class="p">,</span>
+  <span class="nv">`followed_count`</span> <span class="n">int</span><span class="p">(</span><span class="mi">10</span><span class="p">)</span> <span class="n">unsigned</span> <span class="k">DEFAULT</span> <span class="mi">0</span> <span class="k">COMMENT</span> <span class="s1">'关注数'</span><span class="p">,</span>
+  <span class="nv">`follow_live_count`</span> <span class="n">int</span><span class="p">(</span><span class="mi">10</span><span class="p">)</span> <span class="n">unsigned</span> <span class="k">DEFAULT</span> <span class="mi">0</span> <span class="k">COMMENT</span> <span class="s1">'关注直播数'</span><span class="p">,</span>
+  <span class="nv">`follow_topic_count`</span> <span class="n">int</span><span class="p">(</span><span class="mi">10</span><span class="p">)</span> <span class="n">unsigned</span> <span class="k">DEFAULT</span> <span class="mi">0</span> <span class="k">COMMENT</span> <span class="s1">'关注话题数'</span><span class="p">,</span>
+  <span class="nv">`follow_column_count`</span> <span class="n">int</span><span class="p">(</span><span class="mi">10</span><span class="p">)</span> <span class="n">unsigned</span> <span class="k">DEFAULT</span> <span class="mi">0</span> <span class="k">COMMENT</span> <span class="s1">'关注专栏数'</span><span class="p">,</span>
+  <span class="nv">`follow_question_count`</span> <span class="n">int</span><span class="p">(</span><span class="mi">10</span><span class="p">)</span> <span class="n">unsigned</span> <span class="k">DEFAULT</span> <span class="mi">0</span> <span class="k">COMMENT</span> <span class="s1">'关注问题数'</span><span class="p">,</span>
+  <span class="nv">`follow_collection_count`</span> <span class="n">int</span><span class="p">(</span><span class="mi">10</span><span class="p">)</span> <span class="n">unsigned</span> <span class="k">DEFAULT</span> <span class="mi">0</span> <span class="k">COMMENT</span> <span class="s1">'关注收藏夹数'</span><span class="p">,</span>
+  <span class="nv">`gmt_create`</span> <span class="n">datetime</span> <span class="k">NOT</span> <span class="k">NULL</span> <span class="k">COMMENT</span> <span class="s1">'创建时间'</span><span class="p">,</span>   
+  <span class="nv">`gmt_modify`</span> <span class="k">timestamp</span> <span class="k">NOT</span> <span class="k">NULL</span> <span class="k">DEFAULT</span> <span class="k">CURRENT_TIMESTAMP</span> <span class="k">COMMENT</span> <span class="s1">'最后一次编辑'</span><span class="p">,</span>             
+  <span class="k">PRIMARY</span> <span class="k">KEY</span> <span class="p">(</span><span class="nv">`uid`</span><span class="p">)</span>
+<span class="p">)</span> <span class="n">ENGINE</span><span class="o">=</span><span class="n">MyISAM</span> <span class="n">AUTO_INCREMENT</span><span class="o">=</span><span class="mi">1</span> <span class="k">DEFAULT</span> <span class="n">CHARSET</span><span class="o">=</span><span class="n">utf8</span> <span class="k">COMMENT</span><span class="o">=</span><span class="s1">'用户基本信息表'</span><span class="p">;</span>
+</code></pre>
+</div>
+
+<p>网页下载后通过XPath进行解析，提取用户各个维度的数据，最后保存到数据库中。</p>
+
+<h3 id="反爬虫策略应对-headers">反爬虫策略应对-Headers</h3>
+
+<p>一般网站会从几个维度来反爬虫：用户请求的Headers，用户行为，网站和数据加载的方式。从用户请求的Headers反爬虫是最常见的策略，很多网站都会对Headers的User-Agent进行检测，还有一部分网站会对Referer进行检测（一些资源网站的防盗链就是检测Referer）。</p>
+
+<p>如果遇到了这类反爬虫机制，可以直接在爬虫中添加Headers，将浏览器的User-Agent复制到爬虫的Headers中；或者将Referer值修改为目标网站域名。对于检测Headers的反爬虫，在爬虫中修改或者添加Headers就能很好的绕过。</p>
+
+<div class="language-python highlighter-rouge"><pre class="highlight"><code><span class="n">cookies</span> <span class="o">=</span> <span class="p">{</span>
+    <span class="s">"d_c0"</span><span class="p">:</span> <span class="s">"AECA7v-aPwqPTiIbemmIQ8abhJy7bdD2VgE=|1468847182"</span><span class="p">,</span>
+    <span class="s">"login"</span><span class="p">:</span> <span class="s">"NzM5ZDc2M2JkYzYwNDZlOGJlYWQ1YmI4OTg5NDhmMTY=|1480901173|9c296f424b32f241d1471203244eaf30729420f0"</span><span class="p">,</span>
+    <span class="s">"n_c"</span><span class="p">:</span> <span class="s">"1"</span><span class="p">,</span>
+    <span class="s">"q_c1"</span><span class="p">:</span> <span class="s">"395b12e529e541cbb400e9718395e346|1479808003000|1468847182000"</span><span class="p">,</span>
+    <span class="s">"l_cap_id"</span><span class="p">:</span> <span class="s">"NzI0MTQwZGY2NjQyNDQ1NThmYTY0MjJhYmU2NmExMGY=|1480901160|2e7a7faee3b3e8d0afb550e8e7b38d86c15a31bc"</span><span class="p">,</span>
+    <span class="s">"d_c0"</span><span class="p">:</span> <span class="s">"AECA7v-aPwqPTiIbemmIQ8abhJy7bdD2VgE=|1468847182"</span><span class="p">,</span>
+    <span class="s">"cap_id"</span><span class="p">:</span> <span class="s">"N2U1NmQwODQ1NjFiNGI2Yzg2YTE2NzJkOTU5N2E0NjI=|1480901160|fd59e2ed79faacc2be1010687d27dd559ec1552a"</span>
+<span class="p">}</span>
+
+<span class="n">headers</span> <span class="o">=</span> <span class="p">{</span>
+    <span class="s">"User-Agent"</span><span class="p">:</span> <span class="s">"Mozilla/5.0 (Macintosh; Intel Mac OS X 10_12_1) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/54.0.2840.98 Safari/537.3"</span><span class="p">,</span>
+    <span class="s">"Referer"</span><span class="p">:</span> <span class="s">"https://www.zhihu.com/"</span>
+<span class="p">}</span>
+
+<span class="n">r</span> <span class="o">=</span> <span class="n">requests</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">url</span><span class="p">,</span> <span class="n">cookies</span> <span class="o">=</span> <span class="n">cookies</span><span class="p">,</span> <span class="n">headers</span> <span class="o">=</span> <span class="n">headers</span><span class="p">)</span>
+</code></pre>
+</div>
+
+<h3 id="反爬虫策略应对-代理ip池">反爬虫策略应对-代理IP池</h3>
+
+<p>还有一部分网站是通过检测用户行为，例如同一IP短时间内多次访问同一页面，或者同一账户短时间内多次进行相同操作。</p>
+
+<p>大多数网站都是前一种情况，对于这种情况，使用IP代理就可以解决。这样的代理ip爬虫经常会用到，最好自己准备一个。有了大量代理ip后可以每请求几次更换一个ip，这在requests或者urllib2中很容易做到，这样就能很容易的绕过第一种反爬虫。目前知乎已经对爬虫做了限制，如果是单个IP的话，一段时间系统便会提示异常流量，无法继续爬取了。因此代理IP池非常关键。网上有个免费的代理IP API: http://api.xicidaili.com/free2016.txt</p>
+
+<div class="language-python highlighter-rouge"><pre class="highlight"><code><span class="kn">import</span> <span class="nn">requests</span>
+<span class="kn">import</span> <span class="nn">random</span>
+
+<span class="k">class</span> <span class="nc">Proxy</span><span class="p">:</span>
+
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">cache_ip_list</span> <span class="o">=</span> <span class="p">[]</span>
+
+    <span class="c"># Get random ip from free proxy api url.</span>
+    <span class="k">def</span> <span class="nf">get_random_ip</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">cache_ip_list</span><span class="p">):</span>
+            <span class="n">api_url</span> <span class="o">=</span> <span class="s">'http://api.xicidaili.com/free2016.txt'</span>
+            <span class="k">try</span><span class="p">:</span>
+                <span class="n">r</span> <span class="o">=</span> <span class="n">requests</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">api_url</span><span class="p">)</span>
+                <span class="n">ip_list</span> <span class="o">=</span> <span class="n">r</span><span class="o">.</span><span class="n">text</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s">'</span><span class="se">\r\n</span><span class="s">'</span><span class="p">)</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">cache_ip_list</span> <span class="o">=</span> <span class="n">ip_list</span>
+            <span class="k">except</span> <span class="nb">Exception</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+                <span class="c"># Return null list when caught exception.</span>
+                <span class="c"># In this case, crawler will not use proxy ip.</span>
+                <span class="k">print</span> <span class="n">e</span>
+                <span class="k">return</span> <span class="p">{}</span>
+
+        <span class="n">proxy_ip</span> <span class="o">=</span> <span class="n">random</span><span class="o">.</span><span class="n">choice</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">cache_ip_list</span><span class="p">)</span>
+        <span class="n">proxies</span> <span class="o">=</span> <span class="p">{</span><span class="s">'http'</span><span class="p">:</span> <span class="s">'http://'</span> <span class="o">+</span> <span class="n">proxy_ip</span><span class="p">}</span>
+        <span class="k">return</span> <span class="n">proxies</span>
+</code></pre>
+</div>
+
+<h3 id="后续">后续</h3>
+<ul>
+  <li>使用日志模块记录爬取日志和错误日志</li>
+  <li>分布式任务队列和分布式爬虫</li>
+</ul>
+
+<p>爬虫源代码：<a href="https://github.com/cpselvis/zhihu-crawler">zhihu-crawler</a> 下载之后通过pip安装相关三方包后，运行$ python crawler.py即可（喜欢的帮忙点个star哈，同时也方便看到后续功能的更新）</p>
+
+<p>运行截图：
+<img src="http://images2015.cnblogs.com/blog/1030776/201706/1030776-20170613171518618-1863507532.png" alt="" /></p>
+
+  </section>
+</article>
+
+<section class="read-more">
+   
+   
+   <div class="read-more-item">
+       <span class="read-more-item-dim">最近的文章</span>
+       <h2 class="post-list__post-title post-title"><a href="/2017/09/Node.js%E5%9C%A8CLI%E4%B8%8B%E7%9A%84%E5%B7%A5%E7%A8%8B%E5%8C%96%E4%BD%93%E7%B3%BB%E5%AE%9E%E8%B7%B5-%E6%88%90%E9%83%BDOSC%E6%BA%90%E5%88%9B%E4%BC%9A%E5%88%86%E4%BA%AB%E6%80%BB%E7%BB%93/" title="link to 《Node.js在CLI下的工程化体系实践》成都OSC源创会分享总结">《Node.js在CLI下的工程化体系实践》成都OSC源创会分享总结</a></h2>
+       <p class="excerpt">  背景: 随着开发团队规模不断发展壮大，在人员增加的同时也带来了协作成本的增加，业务项目越来越多，类型也各不相同。常见的类型有组件类、活动类、基于React+redux的业务项目、RN项目、Node.js项目等等。如果想要对每个项目进行一些规范的约束比如Git提交规范、Javascript规范简直难于登天。所有的这些，只因为缺少一个好用的工程化工具。从项目创建、开发、构建、代码规范检查到最终项目上线，通过CLI可以提升效率，同时保障开发规范的实施。Node.js实现CLI的基本原理关键点...&hellip;</p>
+       <div class="post-list__meta"><time datetime="2017-09-26 15:18:24 +0800" class="post-list__meta--date date">2017-09-26</time> &#8226; <span class="post-list__meta--tags tags"></span><a class="btn-border-small" href=/2017/09/Node.js%E5%9C%A8CLI%E4%B8%8B%E7%9A%84%E5%B7%A5%E7%A8%8B%E5%8C%96%E4%BD%93%E7%B3%BB%E5%AE%9E%E8%B7%B5-%E6%88%90%E9%83%BDOSC%E6%BA%90%E5%88%9B%E4%BC%9A%E5%88%86%E4%BA%AB%E6%80%BB%E7%BB%93/>继续阅读</a></div>
+   </div>
+   
+   
+   
+   
+   <div class="read-more-item">
+       <span class="read-more-item-dim">更早的文章</span>
+       <h2 class="post-list__post-title post-title"><a href="/2017/05/%E7%BC%96%E5%86%99%E5%8E%9F%E7%94%9F%E7%9A%84Node.js%E6%A8%A1%E5%9D%97/" title="link to 编写原生的Node.js模块">编写原生的Node.js模块</a></h2>
+       <p class="excerpt">  导语：当Javascript的性能遭遇瓶颈，或者需要增强Javascript能力的时候，就需要依赖native模块来实现了。应用场景日常工作中，我们经常需要将原生的Node.js模块做为依赖并在项目中进行使用。下面有个列表，你可能对它们的名字很熟悉:  node-sass 将sass文件编译成css文件  node-microtime: 扩展Javascript的时间精度  node-inspector：进行调试  v8-profiler：性能及内存使用分析通常，我们开发原生Node....&hellip;</p>
+       <div class="post-list__meta"><time datetime="2017-05-31 21:13:24 +0800" class="post-list__meta--date date">2017-05-31</time> &#8226; <span class="post-list__meta--tags tags"></span><a class="btn-border-small" href=/2017/05/%E7%BC%96%E5%86%99%E5%8E%9F%E7%94%9F%E7%9A%84Node.js%E6%A8%A1%E5%9D%97/>继续阅读</a></div>
+   </div>
+   
+</section>
+
+<section class="post-comments">
+  
+    <div id="disqus_thread"></div>
+    <script>
+    
+    var disqus_config = function () {
+        this.page.url = "http://localhost:4000/2017/06/python%E7%BC%96%E5%86%99%E7%9F%A5%E4%B9%8E%E7%88%AC%E8%99%AB%E5%AE%9E%E8%B7%B5/";
+        this.page.identifier = "/2017/06/python%E7%BC%96%E5%86%99%E7%9F%A5%E4%B9%8E%E7%88%AC%E8%99%AB%E5%AE%9E%E8%B7%B5/";
+    };
+
+    var disqus_shortname = 'vno-jekyll';
+    
+    (function() { // DON'T EDIT BELOW THIS LINE
+        var d = document, s = d.createElement('script');
+        s.src = '//' + disqus_shortname + '.disqus.com/embed.js';
+        s.setAttribute('data-timestamp', +new Date());
+            (d.head || d.body).appendChild(s);
+        })();
+    </script>
+    <noscript>要查看<a href="http://disqus.com/?ref_noscript"> Disqus </a>评论，请启用 JavaScript</noscript>
+    
+  
+  
+  
+  
+</section>
+
+
+            <section class="footer">
+    <footer>
+    	<span class="footer__copyright">本站点采用<a href="http://creativecommons.org/licenses/by-nc-sa/4.0/">知识共享 署名-非商业性使用-相同方式共享 4.0 国际 许可协议</a></span>
+        <span class="footer__copyright">由 <a href="https://jekyllrb.com">Jekyll</a> 于 2017-10-08 生成，感谢 <a href="https://www.digitalocean.com/?refcode=30ed2d146762">Digital Ocean</a> 为本站提供稳定的 VPS 服务</span>
+        <span class="footer__copyright">本站由 <a href="https://cpselvis.github.io">@cpselvis</a> 创建，采用 <a href="https://github.com/onevcat/vno-jekyll">Vno - Jekyll</a> 作为主题，您可以在 GitHub 找到<a href="https://github.com/onevcat/OneV-s-Den">本站源码</a> - &copy; 2017</span>
+    </footer>
+</section>
+
+        </div>
+    </div>
+    
+    <script type="text/javascript" src="//code.jquery.com/jquery-1.11.3.min.js"></script>
+
+<script type="text/javascript" src="/js/main.js"></script>
+
+
+
+    
+  </body>
+
+</html>

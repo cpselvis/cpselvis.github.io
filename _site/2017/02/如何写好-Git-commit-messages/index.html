@@ -1,0 +1,346 @@
+<!DOCTYPE html>
+<html>
+
+  <head>
+  <meta charset="utf-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+
+  <title>如何写好 Git commit messages</title>
+  <meta name="description" content="  导语：任何软件项目都是一个协作项目，它至少需要2个开发人员参与，当原始的开发人员将项目开发几个星期或者几个月之后，项目步入正规。不过他们或者后续的开发人员仍然需要经常提交一些代码去修复bug或者实现新的feature。我们经常有这种感受：当一个项目时间过了很久之后，我们对于项目里面的文件和函数功能渐渐淡忘，重...">
+  <meta name="author" content="Wei Wang">
+
+  <meta name="twitter:card" content="summary">
+  <meta name="twitter:title" content="如何写好 Git commit messages">
+  <meta name="twitter:description" content="  导语：任何软件项目都是一个协作项目，它至少需要2个开发人员参与，当原始的开发人员将项目开发几个星期或者几个月之后，项目步入正规。不过他们或者后续的开发人员仍然需要经常提交一些代码去修复bug或者实现新的feature。我们经常有这种感受：当一个项目时间过了很久之后，我们对于项目里面的文件和函数功能渐渐淡忘，重...">
+  
+  <meta property="og:type" content="article">
+  <meta property="og:title" content="如何写好 Git commit messages">
+  <meta property="og:description" content="  导语：任何软件项目都是一个协作项目，它至少需要2个开发人员参与，当原始的开发人员将项目开发几个星期或者几个月之后，项目步入正规。不过他们或者后续的开发人员仍然需要经常提交一些代码去修复bug或者实现新的feature。我们经常有这种感受：当一个项目时间过了很久之后，我们对于项目里面的文件和函数功能渐渐淡忘，重...">
+  
+  <link rel="icon" type="image/png" href="/assets/images/favicon.png" />
+  <link href="/assets/images/favicon.png" rel="shortcut icon" type="image/png">
+  
+  <link rel="stylesheet" href="/css/main.css">
+  <link href="//netdna.bootstrapcdn.com/font-awesome/4.1.0/css/font-awesome.min.css" rel="stylesheet">
+
+  <link rel="canonical" href="http://localhost:4000/2017/02/%E5%A6%82%E4%BD%95%E5%86%99%E5%A5%BD-Git-commit-messages/">
+  <link rel="alternate" type="application/rss+xml" title="cpselvis" href="http://localhost:4000/feed.xml">
+  
+  <meta name="google-site-verification" content="1-1ZlHoRvM0T2FqPbW2S-qLgYXN6rsn52kErlMPd_gw" />
+  
+</head>
+
+
+  <body>
+
+    <span class="mobile btn-mobile-menu">
+        <i class="fa fa-list btn-mobile-menu__icon"></i>
+        <i class="fa fa-angle-up btn-mobile-close__icon hidden"></i>
+    </span>
+    
+    <header class="panel-cover panel-cover--collapsed" style="background-image: url('/assets/images/background-cover.jpg')">
+  <div class="panel-main">
+
+    <div class="panel-main__inner panel-inverted">
+    <div class="panel-main__content">
+
+        <a href="/#blog" title="前往 cpselvis 的主页" class="blog-button"><img src="/assets/images/avatar.jpg" width="80" alt="cpselvis logo" class="panel-cover__logo logo" /></a>
+        <h1 class="panel-cover__title panel-title"><a href="/#blog" title="link to homepage for cpselvis" class="blog-button">cpselvis</a></h1>
+        
+        <span class="panel-cover__subtitle panel-subtitle">落花无言,人淡如菊,心素如简</span>
+        
+        <hr class="panel-cover__divider" />
+        <p class="panel-cover__description">嗨，我是程柳锋 (@cpselvis)，一名来自中国的 web 开发者。现居深圳，就职于 腾讯。目前负责研发规范和工程化建设，曾在OSC源创会上做过分享。</p>
+        <hr class="panel-cover__divider panel-cover__divider--secondary" />
+        
+        
+        
+        <div class="navigation-wrapper">
+          <div>
+            <nav class="cover-navigation cover-navigation--primary">
+              <ul class="navigation">
+                <li class="navigation__item"><a href="/#blog" title="Visit blog" class="blog-button">博客</a></li>
+                
+                  <li class="navigation__item"><a href="https://cpselvis.github.io/" target="_blank" title="My Projects">首页</a></li>
+                
+              </ul>
+            </nav>
+          </div>
+          
+          <div><nav class="cover-navigation navigation--social">
+  <ul class="navigation">
+
+  
+  <!-- Weibo -->
+  <li class="navigation__item">
+    <a href="http://weibo.com/cpselvis" title="@cpselvis 的微博" target="_blank">
+      <i class='social fa fa-weibo'></i>
+      <span class="label">Weibo</span>
+    </a>
+  </li>
+  
+
+  
+  <!-- Github -->
+  <li class="navigation__item">
+    <a href="https://github.com/cpselvis" title="@cpselvis 的 Github" target="_blank">
+      <i class='social fa fa-github'></i>
+      <span class="label">Github</span>
+    </a>
+  </li>
+  
+  
+  
+  <!-- Twitter -->
+  <li class="navigation__item">
+    <a href="http://twitter.com/cpselvis" title="@cpselvis" target="_blank">
+      <i class='social fa fa-twitter'></i>
+      <span class="label">Twitter</span>
+    </a>
+  </li>
+  
+
+  
+  <!-- Google Plus -->
+  <li class="navigation__item">
+    <a href="https://plus.google.com/104634663101299635957" rel="author" title="Google+" target="_blank">
+      <i class='social fa fa-google-plus-square'></i>
+      <span class="label">Google Plus</span>
+    </a>
+  </li>
+  
+
+  <!-- RSS -->
+  <li class="navigation__item">
+    <a href="/feed.xml" rel="author" title="RSS" target="_blank">
+      <i class='social fa fa-rss'></i>
+      <span class="label">RSS</span>
+    </a>
+  </li>
+
+  
+  <!-- Email -->
+  <li class="navigation__item">
+    <a href="mailto:cpselvis@gmail.com" title="Contact me">
+      <i class='social fa fa-envelope'></i>
+      <span class="label">Email</span>
+    </a>
+  </li>
+  
+
+  </ul>
+</nav>
+</div>
+        </div>
+      </div>
+    </div>
+    
+    
+    <div class="panel-cover--overlay cover-blue"></div>
+    
+  </div>
+</header>
+
+
+    <div class="content-wrapper">
+        <div class="content-wrapper__inner">
+            <article class="post-container post-container--single" itemscope itemtype="http://schema.org/BlogPosting">
+  <header class="post-header">
+    <div class="post-meta">
+      <time datetime="2017-02-21 13:09:24 +0800" itemprop="datePublished" class="post-meta__date date">2017-02-21</time> &#8226; <span class="post-meta__tags tags"></span>
+    </div>
+    <h1 class="post-title">如何写好 Git commit messages</h1>
+  </header>
+
+  <section class="post">
+    <blockquote>
+  <p>导语：任何软件项目都是一个协作项目，它至少需要2个开发人员参与，当原始的开发人员将项目开发几个星期或者几个月之后，项目步入正规。不过他们或者后续的开发人员仍然需要经常提交一些代码去修复bug或者实现新的feature。我们经常有这种感受：当一个项目时间过了很久之后，我们对于项目里面的文件和函数功能渐渐淡忘，重新去阅读熟悉这部分代码是很浪费时间并且恼人的一件事。但是这也没法完全避免，我们可以使用一些技巧尽可能减少重新熟悉代码的时间。commit messages可以满足需要，它也反映了一个开发人员是否是良好的协作者。</p>
+</blockquote>
+
+<p>编写良好的Commit messages可以达到3个重要的目的：</p>
+
+<ul>
+  <li>加快review的流程</li>
+  <li>帮助我们编写良好的版本发布日志</li>
+  <li>让之后的维护者了解代码里出现特定变化和feature被添加的原因</li>
+</ul>
+
+<p>先来看看一个比较好的例子，感受一下：
+<img src="http://images2015.cnblogs.com/blog/1030776/201702/1030776-20170221160013179-892954595.png" alt="" /></p>
+
+<p>下面谈谈，如何让项目里面的Commit messages步入规范化，流程化。</p>
+
+<h3 id="commit-messages的基本语法">Commit messages的基本语法</h3>
+
+<div class="language-sh highlighter-rouge"><pre class="highlight"><code>&lt;<span class="nb">type</span>&gt;: &lt;subject&gt;
+&lt;BLANK LINE&gt;
+&lt;body&gt;
+&lt;BLANK LINE&gt;
+&lt;footer&gt;
+</code></pre>
+</div>
+
+<p>Type表示提交类别，Subject表示标题行， Body表示主体描述内容。</p>
+
+<p>Type的类别说明：</p>
+<ul>
+  <li>feat: 添加新特性</li>
+  <li>fix: 修复bug</li>
+  <li>docs: 仅仅修改了文档</li>
+  <li>style: 仅仅修改了空格、格式缩进、都好等等，不改变代码逻辑</li>
+  <li>refactor: 代码重构，没有加新功能或者修复bug</li>
+  <li>perf: 增加代码进行性能测试</li>
+  <li>test: 增加测试用例</li>
+  <li>chore: 改变构建流程、或者增加依赖库、工具等</li>
+</ul>
+
+<h3 id="commit-messages格式要求">Commit messages格式要求</h3>
+
+<div class="language-sh highlighter-rouge"><pre class="highlight"><code><span class="c"># 标题行：50个字符以内，描述主要变更内容</span>
+<span class="c">#</span>
+<span class="c"># 主体内容：更详细的说明文本，建议72个字符以内。 需要描述的信息包括:</span>
+<span class="c">#</span>
+<span class="c"># * 为什么这个变更是必须的? 它可能是用来修复一个bug，增加一个feature，提升性能、可靠性、稳定性等等</span>
+<span class="c"># * 他如何解决这个问题? 具体描述解决问题的步骤</span>
+<span class="c"># * 是否存在副作用、风险?</span>
+<span class="c">#</span>
+<span class="c"># 如果需要的化可以添加一个链接到issue地址或者其它文档</span>
+</code></pre>
+</div>
+
+<p>这3个问题给代码的变更建立了良好的上下文，可以让其他的代码review人员或者项目成员直观的判断修改点是否正确。一条良好的commit message也可以让维护者知道这个patch是否适合发布到稳定的版本中去。</p>
+
+<p>如果一个patch没有回答上面的这几个问题，那么它是无意义的。它会给review的人员造成负担，让他们花费大量时间去评审讨论这个patch的作用和意义。更糟糕的是，如果一个项目实施SCM纪律，则这个patch会被拒绝掉，然后开发人员需要花费时间重新编写一个新的patch。重新编写一个复杂的patch代价是巨大的，而把commit message写好只会花费几分钟。</p>
+
+<h3 id="commit-messages书写建议">Commit messages书写建议</h3>
+
+<ul>
+  <li>尽可能多的提交，单个Commit messages包含的内容不要过多</li>
+  <li>标题行以Fix, Add, Change, Delete开始，采用命令式的模式。不要使用Fixed, Added, Changed等等</li>
+  <li>始终让第二行是空白，不写任何内容</li>
+  <li>主体内容注意换行，避免在gitk里面滚动条水平滑动</li>
+  <li>永远不在 git commit 上增加 -m 或 –message= 参数，提交的时候git commit即可。</li>
+  <li>如果你是vim用户，将下面这行代码加入到~/.vimrc。这会帮助你检查拼写和自动换行
+    <div class="language-sh highlighter-rouge"><pre class="highlight"><code>autocmd Filetype gitcommit setlocal spell <span class="nv">textwidth</span><span class="o">=</span>72
+</code></pre>
+    </div>
+  </li>
+</ul>
+
+<h3 id="使用commitizen工具">使用Commitizen工具</h3>
+
+<p><a href="https://github.com/commitizen/cz-cli">Commitizen</a>可以让你的commit message更加规范统一，适合项目团队使用，使用也很简单，使用npm安装后，提交代码的时候使用git cz去替代以前的git commit命令即可。</p>
+
+<p>安装commitizen：</p>
+
+<div class="language-sh highlighter-rouge"><pre class="highlight"><code><span class="gp">$ </span>npm install -g commitizen
+</code></pre>
+</div>
+<p>使用截图：</p>
+
+<p><img src="http://images2015.cnblogs.com/blog/1030776/201702/1030776-20170221140646085-381664858.png" alt="" /></p>
+
+<h3 id="自动生成change-log">自动生成Change log</h3>
+
+<p><a href="https://github.com/conventional-changelog/conventional-changelog">conventional-changelog</a>是用来从git的元数据中生成 Change log文档的工具，只要你提交的格式满足它定义的标准，此处以angular标准为例子。使用它生成的Change log包含以下三个部分：</p>
+
+<p>Bug Fixes Bug修复的信息
+Features 增加的特性
+BREAKING CHANGES 重大变更</p>
+
+<p>可以参考它生成的文档<a href="https://github.com/conventional-changelog/conventional-changelog/blob/master/CHANGELOG.md">CHANGELOG.md</a>，使用如下：</p>
+
+<div class="language-sh highlighter-rouge"><pre class="highlight"><code><span class="gp">$ </span>npm install -g conventional-changelog-cli
+<span class="gp">$ </span><span class="nb">cd </span>my-project
+<span class="gp">$ </span>conventional-changelog -p angular -i CHANGELOG.md -s
+</code></pre>
+</div>
+
+<p>这不会覆盖你之前的CHANGE.md文档内容，会在这个文件的最上面插入新生成的日志信息。</p>
+
+<h3 id="参考链接">参考链接</h3>
+
+<ul>
+  <li><a href="http://stackoverflow.com/questions/2290016/git-commit-messages-50-72-formatting">Git Commit Messages : 50/72 Formatting</a></li>
+  <li><a href="https://git-scm.com/book/en/v2/Distributed-Git-Contributing-to-a-Project">Distributed Git - Contributing to a Project</a></li>
+  <li><a href="https://github.com/thoughtbot/dotfiles/blob/master/gitmessage">thoughtbot</a></li>
+  <li><a href="https://github.com/erlang/otp/wiki/Writing-good-commit-messages">Erlang otp</a></li>
+  <li><a href="https://github.com/conventional-changelog/conventional-changelog/blob/v0.5.3/conventions/angular.md">Commit messages standard</a></li>
+  <li><a href="https://github.com/conventional-changelog/conventional-changelog-cli">conventional-changelog-cli</a></li>
+</ul>
+
+  </section>
+</article>
+
+<section class="read-more">
+   
+   
+   <div class="read-more-item">
+       <span class="read-more-item-dim">最近的文章</span>
+       <h2 class="post-list__post-title post-title"><a href="/2017/03/Git-commit-message%E5%92%8C%E5%B7%A5%E4%BD%9C%E6%B5%81%E8%A7%84%E8%8C%83/" title="link to Git commit message和工作流规范">Git commit message和工作流规范</a></h2>
+       <p class="excerpt">目的  统一团队Git commit日志标准，便于后续代码review，版本发布以及日志自动化生成等等。  统一团队的Git工作流，包括分支使用、tag规范、issue等Git commit日志参考案例  angular  commit-message-test-project  babel-plugin-istanbul  conventional-changelog总体方案Git commit日志基本规范&lt;type&gt;(&lt;scope&gt;): &lt;subject&...&hellip;</p>
+       <div class="post-list__meta"><time datetime="2017-03-04 14:33:24 +0800" class="post-list__meta--date date">2017-03-04</time> &#8226; <span class="post-list__meta--tags tags"></span><a class="btn-border-small" href=/2017/03/Git-commit-message%E5%92%8C%E5%B7%A5%E4%BD%9C%E6%B5%81%E8%A7%84%E8%8C%83/>继续阅读</a></div>
+   </div>
+   
+   
+   
+   
+   <div class="read-more-item">
+       <span class="read-more-item-dim">更早的文章</span>
+       <h2 class="post-list__post-title post-title"><a href="/2017/01/Javascript%E4%B8%AD%E7%9A%84async-await/" title="link to Javascript中的async await">Javascript中的async await</a></h2>
+       <p class="excerpt">async / await是ES7的重要特性之一，也是目前社区里公认的优秀异步解决方案。目前，async / await这个特性已经是stage 3的建议，可以看看TC39的进度，本篇文章将分享async / await是如何工作的，阅读本文前，希望你具备Promise、generator、yield等ES6的相关知识。在详细介绍async / await之前，先回顾下目前在ES6中比较好的异步处理办法。下面的例子中数据请求用Node.js中的request模块，数据接口采用Github ...&hellip;</p>
+       <div class="post-list__meta"><time datetime="2017-01-23 16:52:24 +0800" class="post-list__meta--date date">2017-01-23</time> &#8226; <span class="post-list__meta--tags tags"></span><a class="btn-border-small" href=/2017/01/Javascript%E4%B8%AD%E7%9A%84async-await/>继续阅读</a></div>
+   </div>
+   
+</section>
+
+<section class="post-comments">
+  
+    <div id="disqus_thread"></div>
+    <script>
+    
+    var disqus_config = function () {
+        this.page.url = "http://localhost:4000/2017/02/%E5%A6%82%E4%BD%95%E5%86%99%E5%A5%BD-Git-commit-messages/";
+        this.page.identifier = "/2017/02/%E5%A6%82%E4%BD%95%E5%86%99%E5%A5%BD-Git-commit-messages/";
+    };
+
+    var disqus_shortname = 'vno-jekyll';
+    
+    (function() { // DON'T EDIT BELOW THIS LINE
+        var d = document, s = d.createElement('script');
+        s.src = '//' + disqus_shortname + '.disqus.com/embed.js';
+        s.setAttribute('data-timestamp', +new Date());
+            (d.head || d.body).appendChild(s);
+        })();
+    </script>
+    <noscript>要查看<a href="http://disqus.com/?ref_noscript"> Disqus </a>评论，请启用 JavaScript</noscript>
+    
+  
+  
+  
+  
+</section>
+
+
+            <section class="footer">
+    <footer>
+    	<span class="footer__copyright">本站点采用<a href="http://creativecommons.org/licenses/by-nc-sa/4.0/">知识共享 署名-非商业性使用-相同方式共享 4.0 国际 许可协议</a></span>
+        <span class="footer__copyright">由 <a href="https://jekyllrb.com">Jekyll</a> 于 2017-10-08 生成，感谢 <a href="https://www.digitalocean.com/?refcode=30ed2d146762">Digital Ocean</a> 为本站提供稳定的 VPS 服务</span>
+        <span class="footer__copyright">本站由 <a href="https://cpselvis.github.io">@cpselvis</a> 创建，采用 <a href="https://github.com/onevcat/vno-jekyll">Vno - Jekyll</a> 作为主题，您可以在 GitHub 找到<a href="https://github.com/onevcat/OneV-s-Den">本站源码</a> - &copy; 2017</span>
+    </footer>
+</section>
+
+        </div>
+    </div>
+    
+    <script type="text/javascript" src="//code.jquery.com/jquery-1.11.3.min.js"></script>
+
+<script type="text/javascript" src="/js/main.js"></script>
+
+
+
+    
+  </body>
+
+</html>

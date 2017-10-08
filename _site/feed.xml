@@ -5,99 +5,1726 @@
     <description>嗨，我是程柳锋 (@cpselvis)，一名来自中国的 web 开发者。现居深圳，就职于 腾讯。目前负责研发规范和工程化建设，曾在OSC源创会上做过分享。</description>
     <link>http://localhost:4000/</link>
     <atom:link href="http://localhost:4000/feed.xml" rel="self" type="application/rss+xml"/>
-    <pubDate>Sun, 08 Oct 2017 15:58:07 +0800</pubDate>
-    <lastBuildDate>Sun, 08 Oct 2017 15:58:07 +0800</lastBuildDate>
+    <pubDate>Sun, 08 Oct 2017 16:48:03 +0800</pubDate>
+    <lastBuildDate>Sun, 08 Oct 2017 16:48:03 +0800</lastBuildDate>
     <generator>Jekyll v3.4.0</generator>
     
       <item>
-        <title>Hello World - Vno</title>
-        <description>&lt;h4 id=&quot;whats-this&quot;&gt;What’s this&lt;/h4&gt;
+        <title>《Node.js在CLI下的工程化体系实践》成都OSC源创会分享总结</title>
+        <description>&lt;blockquote&gt;
+  &lt;p&gt;背景: 随着开发团队规模不断发展壮大，在人员增加的同时也带来了协作成本的增加，业务项目越来越多，类型也各不相同。常见的类型有组件类、活动类、基于React+redux的业务项目、RN项目、Node.js项目等等。如果想要对每个项目进行一些规范的约束比如Git提交规范、Javascript规范简直难于登天。所有的这些，只因为缺少一个好用的工程化工具。从项目创建、开发、构建、代码规范检查到最终项目上线，通过CLI可以提升效率，同时保障开发规范的实施。&lt;/p&gt;
+&lt;/blockquote&gt;
 
-&lt;p&gt;&lt;a href=&quot;https://github.com/onevcat/vno-jekyll&quot;&gt;Vno Jekyll&lt;/a&gt; is a theme for &lt;a href=&quot;http://jekyllrb.com&quot;&gt;Jekyll&lt;/a&gt;. It is a port of my Ghost theme &lt;a href=&quot;https://github.com/onevcat/vno&quot;&gt;vno&lt;/a&gt;, which is originally developed from &lt;a href=&quot;https://github.com/daleanthony/uno&quot;&gt;Dale Anthony’s Uno&lt;/a&gt;.&lt;/p&gt;
+&lt;h3 id=&quot;nodejs实现cli的基本原理&quot;&gt;Node.js实现CLI的基本原理&lt;/h3&gt;
+&lt;p&gt;关键点在于package.json里面的bin字段。模块全局安装，对于类unix系统，在/usr/local/bin目录创建软链接；对于windows系统，在C:\Users\username\AppData\Roaming\npm目录创建软链接。
+模块局部安装，会在项目内的./node_modules/.bin目录创建软链接。&lt;/p&gt;
 
-&lt;h4 id=&quot;usage&quot;&gt;Usage&lt;/h4&gt;
+&lt;h3 id=&quot;现代化web工程的生命周期&quot;&gt;现代化web工程的生命周期&lt;/h3&gt;
+&lt;p&gt;随着前端工程的不断演进，一方面工程变得日趋复杂，同时对规范和质量的诉求在不断增加。现代化web工程应该包含以下几个阶段：初始化、开发、构建、检查、发布。如下图所示：&lt;/p&gt;
 
-&lt;div class=&quot;language-bash highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;gp&quot;&gt;$ &lt;/span&gt;git clone https://github.com/onevcat/vno-jekyll.git your_site
-&lt;span class=&quot;gp&quot;&gt;$ &lt;/span&gt;&lt;span class=&quot;nb&quot;&gt;cd &lt;/span&gt;your_site
-&lt;span class=&quot;gp&quot;&gt;$ &lt;/span&gt;bundler install
-&lt;span class=&quot;gp&quot;&gt;$ &lt;/span&gt;bundler &lt;span class=&quot;nb&quot;&gt;exec &lt;/span&gt;jekyll serve
+&lt;p&gt;&lt;img src=&quot;http://7tszky.com1.z0.glb.clouddn.com/FlNAEJ0ntRgo-NxeHVtTUc6P8lvz&quot; alt=&quot;&quot; /&gt;&lt;/p&gt;
+
+&lt;h3 id=&quot;痛点1项目拷贝&quot;&gt;痛点1：项目拷贝&lt;/h3&gt;
+&lt;p&gt;项目拷贝存在的问题显而易见，大致有以下三个方面：&lt;/p&gt;
+&lt;ul&gt;
+  &lt;li&gt;容易出错；一旦某个关键文件拷贝丢失或者错误，很可能需要耗费半天到一天的时间排查环境问题。&lt;/li&gt;
+  &lt;li&gt;不同场景下对目录结构要求不同；平时开发过程中，工程通常会分为运营活动、Hybrid业务、入口级别的项目（对性能和体验有极致和苛刻的要求）。需要基于RN或者Node.js的首屏直出，还有常用的业务组件等的开发。&lt;/li&gt;
+  &lt;li&gt;新的Feature和BugFix难以同步；某个同学开发过程中增加的新方法或者解决的bug很难传递给其它同学并且沉淀成经验积累下来。&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;社区里面提供了完美的Yeoman解决方案，它是为了自动化项目的创建而生。Yeoman创建项目包括以下几个阶段：&lt;/p&gt;
+&lt;ul&gt;
+  &lt;li&gt;initializing:  初始化一些状态之类的，通常是和用户输入的 options 或者 arguments 打交道&lt;/li&gt;
+  &lt;li&gt;prompting: 和用户交互的时候（命令行问答之类的）调用&lt;/li&gt;
+  &lt;li&gt;configuring: 保存配置文件（如 .babelrc 等）&lt;/li&gt;
+  &lt;li&gt;writing: 生成模板文件&lt;/li&gt;
+  &lt;li&gt;install: 安装依赖&lt;/li&gt;
+  &lt;li&gt;end:  结束部分，初始代码自动提交&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;我们只需要继承Yeoman的Generator类做模板定制化，基于Yeoman的脚手架设计思路应该如下图所示：
+&lt;img src=&quot;https://pub.idqqimg.com/pc/misc/files/20170921/618294e985fc44989ec5087118ceeb63.jpg&quot; alt=&quot;&quot; /&gt;&lt;/p&gt;
+
+&lt;p&gt;首先，开发者会和CLI进行交互，开发者会告诉CLI需要创建哪一种类型的项目，CLI收到命令后。从本地已经安装的Yeoman脚手架里面选择某种类型的模板。然后，CLI会调用Gitlab API在远程创建仓库并且授予开发者master权限。接下来，会根据实际业务场景需要，自动化申请一些打点信息，常见的如离线包id，监控告警id等等。之后，在本地目录生成代码并且安装项目依赖的npm包，最后将本次初始化生成的所有代码自动提交到远程Git仓库。&lt;/p&gt;
+
+&lt;h3 id=&quot;痛点2运营配置频繁修改&quot;&gt;痛点2：运营配置频繁修改&lt;/h3&gt;
+&lt;p&gt;基于React+redux组件化开发方式中，一个页面或者webapp是由多个容器组件拼装后渲染而成。
+&lt;img src=&quot;http://7tszky.com1.z0.glb.clouddn.com/Fps7Ta8l5HhrH4vWynaM5FyPra9q&quot; alt=&quot;&quot; /&gt;&lt;/p&gt;
+
+&lt;p&gt;某个组件通常是由：模板、cgi数据和事件组成。理想情况下，开发和产品和平共处，你可以把一个组件写成下面这个样子，比如规则组件：&lt;/p&gt;
+&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;render() {
+	return (
+    	&amp;lt;div className=&quot;lottery-rule&quot;&amp;gt;
+        	&amp;lt;div className=&quot;section&quot;&amp;gt;
+            	&amp;lt;h3&amp;gt;活动时间：&amp;lt;/h3&amp;gt;
+                &amp;lt;p&amp;gt;9月14日～9月30日&amp;lt;/p&amp;gt;
+            &amp;lt;/div&amp;gt;
+            &amp;lt;div className=&quot;section&quot;&amp;gt;
+            	&amp;lt;h3&amp;gt;活动规则：&amp;lt;/h3&amp;gt;
+            	&amp;lt;p&amp;gt;1、活动期间，在NOW app上录制小视频，上传成功后即可参赛。&amp;lt;/p&amp;gt;
+                &amp;lt;p&amp;gt;2、根据参赛小视频获得的点赞数进行排行。&amp;lt;/p&amp;gt;
+                &amp;lt;p&amp;gt;3、按照城市评选，分别评选“明日之子”（仅限男性参加）和”闪亮女神“仅限女性参加。&amp;lt;/p&amp;gt;
+            &amp;lt;/div&amp;gt;
+        &amp;lt;/div&amp;gt;
+    );
+}
+&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+&lt;p&gt;咋一看，上面的写法没什么问题。实际确很可能是7、8次的文案修改，甚至对外入口开放后仍然要修改文案或者图片等静态数据。然后，你需要走代码发布流程。&lt;/p&gt;
+
+&lt;p&gt;更好的解决思路是：在开发某个业务组件之前，结合以往的经验，分析哪些静态数据很可能是需要高频次的修改。将这些高频次修改的静态数据抽离出来，对于万年不变的数据则没有必要抽出来。那么，如何将静态数据动态化呢？&lt;/p&gt;
+
+&lt;p&gt;答案是： ** Schema First **， 开发组件之前先设计Schema，通过schema生成一个form表单，达到静态数据和模板分离。如果使用React开发，可以基于&lt;a href=&quot;https://github.com/mozilla-services/react-jsonschema-form&quot;&gt;react-jsonschema-form&lt;/a&gt;定制。静态数据和模板分离之后应该如下图：&lt;/p&gt;
+
+&lt;p&gt;&lt;img src=&quot;http://7tszky.com1.z0.glb.clouddn.com/FoHcVP9tsMFW-7_AKol20XWBsBcq&quot; alt=&quot;&quot; /&gt;&lt;/p&gt;
+
+&lt;h3 id=&quot;痛点3缺少协作规范&quot;&gt;痛点3：缺少协作规范&lt;/h3&gt;
+&lt;p&gt;此处以Git commit规范为例子进行相关改进介绍。&lt;/p&gt;
+
+&lt;p&gt;良好的Git commit规范有以下优势：&lt;/p&gt;
+&lt;ul&gt;
+  &lt;li&gt;加快Review的流程&lt;/li&gt;
+  &lt;li&gt;根据Commit元数据生成Changelog&lt;/li&gt;
+  &lt;li&gt;后续维护者可以知道feature被添加的原因&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;此处采用Google angular项目的提交作为参考，整理出Git commit的解决方案：
+&lt;img src=&quot;http://images2015.cnblogs.com/blog/1030776/201703/1030776-20170304152156235-891182085.png&quot; alt=&quot;&quot; /&gt;&lt;/p&gt;
+
+&lt;p&gt;具体的提交格式要求如下：&lt;/p&gt;
+&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&amp;lt;type&amp;gt;(&amp;lt;scope&amp;gt;): &amp;lt;subject&amp;gt;
+&amp;lt;BLANK LINE&amp;gt;
+&amp;lt;body&amp;gt;
+&amp;lt;BLANK LINE&amp;gt;
+&amp;lt;footer&amp;gt;
 &lt;/code&gt;&lt;/pre&gt;
 &lt;/div&gt;
 
-&lt;p&gt;Your site with &lt;code class=&quot;highlighter-rouge&quot;&gt;Vno Jekyll&lt;/code&gt; enabled should be accessible in http://127.0.0.1:4000.&lt;/p&gt;
+&lt;p&gt;对格式的说明如下：&lt;/p&gt;
 
-&lt;p&gt;For more information about Jekyll, please visit &lt;a href=&quot;http://jekyllrb.com&quot;&gt;Jekyll’s site&lt;/a&gt;.&lt;/p&gt;
+&lt;ul&gt;
+  &lt;li&gt;type代表某次提交的类型，比如是修复一个bug还是增加一个新的feature。所有的type类型如下：&lt;/li&gt;
+  &lt;li&gt;feat： 新增feature&lt;/li&gt;
+  &lt;li&gt;fix: 修复bug&lt;/li&gt;
+  &lt;li&gt;docs: 仅仅修改了文档，比如README, CHANGELOG, CONTRIBUTE等等&lt;/li&gt;
+  &lt;li&gt;style: 仅仅修改了空格、格式缩进、都好等等，不改变代码逻辑&lt;/li&gt;
+  &lt;li&gt;refactor: 代码重构，没有加新功能或者修复bug&lt;/li&gt;
+  &lt;li&gt;perf: 优化相关，比如提升性能、体验&lt;/li&gt;
+  &lt;li&gt;test: 测试用例，包括单元测试、集成测试等&lt;/li&gt;
+  &lt;li&gt;chore: 改变构建流程、或者增加依赖库、工具等&lt;/li&gt;
+  &lt;li&gt;revert: 回滚到上一个版本&lt;/li&gt;
+&lt;/ul&gt;
 
-&lt;h4 id=&quot;configuration&quot;&gt;Configuration&lt;/h4&gt;
+&lt;p&gt;一键生成Changelog版本日志：
+&lt;img src=&quot;http://7tszky.com1.z0.glb.clouddn.com/Fu-kJyozpfuJ6LFTW6IlXoOmRiLh&quot; alt=&quot;&quot; /&gt;&lt;/p&gt;
 
-&lt;p&gt;All configuration could be done in &lt;code class=&quot;highlighter-rouge&quot;&gt;_config.yml&lt;/code&gt;. Remember you need to restart to serve the page when after changing the config file. Everything in the config file should be self-explanatory.&lt;/p&gt;
+&lt;h3 id=&quot;痛点4-缺少代码规范&quot;&gt;痛点4: 缺少代码规范&lt;/h3&gt;
+&lt;p&gt;一次血淋淋的生产环境事故：2017年4月13日，腾讯高级工程师小圣在做充值业务时，修改了苹果iap支付配置，将JSON配置增加了重复的key。代码发布后，有小部分使用了vivo手机的用户反馈充值页面白屏，无法在Now app内进行充值。最后问题定位是：vivo手机使用了系统自带的webview而没有使用X5内核，解析JSON时遇到重复key报错，导致页面白屏。&lt;/p&gt;
 
-&lt;h4 id=&quot;background-image-and-avatar&quot;&gt;Background image and avatar&lt;/h4&gt;
+&lt;p&gt;分析：现代化的浏览器对于JSON里面的重复key会做兼容处理，但是某些老旧的浏览器内核并不会，比如此处的vivo手机，导致代码直接出错。那么，如何避免类似问题再次出现呢？&lt;/p&gt;
 
-&lt;p&gt;You could replace the background and avatar image in &lt;code class=&quot;highlighter-rouge&quot;&gt;assets/images&lt;/code&gt; folder to change them.&lt;/p&gt;
+&lt;p&gt;此处不得不提及ESLint，ESLint于2013年6月推出最新版本v4.6.0，是一款适用于Javascript和JSX的代码规范检查工具，相比JSLint和JSHint而言，它更加灵活，支持自定义配置、插件扩展和配置错误级别。虽然接入ESLint会给团队的同学增加不少代码修改的成本，但是从长远来看，收益肯定是大于付出的。&lt;/p&gt;
 
-&lt;h4 id=&quot;sites-using-vno&quot;&gt;Sites using Vno&lt;/h4&gt;
+&lt;p&gt;Javascript规范制定的原则：&lt;/p&gt;
+&lt;ul&gt;
+  &lt;li&gt;不重复造轮子，基于eslint:recommend 配置并改进&lt;/li&gt;
+  &lt;li&gt;能够帮助发现代码错误的规则，全部开启&lt;/li&gt;
+  &lt;li&gt;配置不应该依赖于某个具体项目，而应尽可能的合理&lt;/li&gt;
+  &lt;li&gt;帮助保持团队的代码风格统一，而不是限制开发体验&lt;/li&gt;
+  &lt;li&gt;有对应的解释文档&lt;/li&gt;
+&lt;/ul&gt;
 
-&lt;p&gt;&lt;a href=&quot;http://onevcat.com&quot;&gt;My blog&lt;/a&gt; is using &lt;code class=&quot;highlighter-rouge&quot;&gt;Vno Jekyll&lt;/code&gt; as well, you could see how it works in real. There are some other sites using the same theme. You can find them below:&lt;/p&gt;
+&lt;p&gt;为了更好的定制和维护Javascript规范，我们创建了eslint的&lt;a href=&quot;https://github.com/iv-web/eslint-config-ivweb&quot;&gt;shareable config&lt;/a&gt;。一方面，我们觉得eslint:recommend 里面的部分配置定义的错误级别过于严格，比如代码里面出现了console会导致校验错误，另一方面，它没有包含ESLint的最佳实践和其它规则。我们定义的部分规则解释如下：&lt;/p&gt;
 
 &lt;table&gt;
   &lt;thead&gt;
     &lt;tr&gt;
-      &lt;th&gt;Site Name&lt;/th&gt;
-      &lt;th&gt;URL&lt;/th&gt;
+      &lt;th style=&quot;text-align: left&quot;&gt;规则名称&lt;/th&gt;
+      &lt;th style=&quot;text-align: left&quot;&gt;错误级别&lt;/th&gt;
+      &lt;th style=&quot;text-align: left&quot;&gt;说明&lt;/th&gt;
     &lt;/tr&gt;
   &lt;/thead&gt;
   &lt;tbody&gt;
     &lt;tr&gt;
-      &lt;td&gt;OneV’s Den&lt;/td&gt;
-      &lt;td&gt;&lt;a href=&quot;http://onevcat.com&quot;&gt;http://onevcat.com&lt;/a&gt;&lt;/td&gt;
+      &lt;td style=&quot;text-align: left&quot;&gt;&lt;a href=&quot;https://eslint.org/docs/rules/for-direction&quot;&gt;for-direction&lt;/a&gt;&lt;/td&gt;
+      &lt;td style=&quot;text-align: left&quot;&gt;error&lt;/td&gt;
+      &lt;td style=&quot;text-align: left&quot;&gt;for 循环的方向要求必须正确&lt;/td&gt;
     &lt;/tr&gt;
     &lt;tr&gt;
-      &lt;td&gt;July Tang&lt;/td&gt;
-      &lt;td&gt;&lt;a href=&quot;http://onevcat.com&quot;&gt;http://blog.julytang.xyz&lt;/a&gt;&lt;/td&gt;
+      &lt;td style=&quot;text-align: left&quot;&gt;&lt;a href=&quot;https://eslint.org/docs/rules/getter-return&quot;&gt;getter-return&lt;/a&gt;&lt;/td&gt;
+      &lt;td style=&quot;text-align: left&quot;&gt;error&lt;/td&gt;
+      &lt;td style=&quot;text-align: left&quot;&gt;getter必须有返回值，并且禁止返回值为undefined, 比如 return;&lt;/td&gt;
     &lt;/tr&gt;
     &lt;tr&gt;
-      &lt;td&gt;Harry Lee&lt;/td&gt;
-      &lt;td&gt;&lt;a href=&quot;http://qiuqi.li&quot;&gt;http://qiuqi.li&lt;/a&gt;&lt;/td&gt;
+      &lt;td style=&quot;text-align: left&quot;&gt;&lt;a href=&quot;https://eslint.org/docs/rules/no-await-in-loop&quot;&gt;no-await-in-loop&lt;/a&gt;&lt;/td&gt;
+      &lt;td style=&quot;text-align: left&quot;&gt;off&lt;/td&gt;
+      &lt;td style=&quot;text-align: left&quot;&gt;允许在循环里面使用await&lt;/td&gt;
+    &lt;/tr&gt;
+    &lt;tr&gt;
+      &lt;td style=&quot;text-align: left&quot;&gt;&lt;a href=&quot;https://eslint.org/docs/rules/no-console&quot;&gt;no-console&lt;/a&gt;&lt;/td&gt;
+      &lt;td style=&quot;text-align: left&quot;&gt;off&lt;/td&gt;
+      &lt;td style=&quot;text-align: left&quot;&gt;允许在代码里面使用console&lt;/td&gt;
+    &lt;/tr&gt;
+    &lt;tr&gt;
+      &lt;td style=&quot;text-align: left&quot;&gt;&lt;a href=&quot;https://eslint.org/docs/rules/no-prototype-builtins&quot;&gt;no-prototype-builtins&lt;/a&gt;&lt;/td&gt;
+      &lt;td style=&quot;text-align: left&quot;&gt;warn&lt;/td&gt;
+      &lt;td style=&quot;text-align: left&quot;&gt;直接调用对象原型链上的方法&lt;/td&gt;
+    &lt;/tr&gt;
+    &lt;tr&gt;
+      &lt;td style=&quot;text-align: left&quot;&gt;&lt;a href=&quot;https://eslint.org/docs/rules/valid-jsdoc&quot;&gt;valid-jsdoc&lt;/a&gt;&lt;/td&gt;
+      &lt;td style=&quot;text-align: left&quot;&gt;off&lt;/td&gt;
+      &lt;td style=&quot;text-align: left&quot;&gt;函数注释一定要遵守jsdoc规则&lt;/td&gt;
+    &lt;/tr&gt;
+    &lt;tr&gt;
+      &lt;td style=&quot;text-align: left&quot;&gt;&lt;a href=&quot;https://eslint.org/docs/rules/no-template-curly-in-string&quot;&gt;no-template-curly-in-string&lt;/a&gt;&lt;/td&gt;
+      &lt;td style=&quot;text-align: left&quot;&gt;warn&lt;/td&gt;
+      &lt;td style=&quot;text-align: left&quot;&gt;在字符串里面出现{和}进行警告&lt;/td&gt;
+    &lt;/tr&gt;
+    &lt;tr&gt;
+      &lt;td style=&quot;text-align: left&quot;&gt;&lt;a href=&quot;https://eslint.org/docs/rules/accessor-pairs&quot;&gt;accessor-pairs&lt;/a&gt;&lt;/td&gt;
+      &lt;td style=&quot;text-align: left&quot;&gt;warn&lt;/td&gt;
+      &lt;td style=&quot;text-align: left&quot;&gt;getter和setter没有成对出现时给出警告&lt;/td&gt;
+    &lt;/tr&gt;
+    &lt;tr&gt;
+      &lt;td style=&quot;text-align: left&quot;&gt;&lt;a href=&quot;https://eslint.org/docs/rules/array-callback-return&quot;&gt;array-callback-return&lt;/a&gt;&lt;/td&gt;
+      &lt;td style=&quot;text-align: left&quot;&gt;error&lt;/td&gt;
+      &lt;td style=&quot;text-align: left&quot;&gt;对于数据相关操作函数比如reduce, map, filter等，callback必须有return&lt;/td&gt;
+    &lt;/tr&gt;
+    &lt;tr&gt;
+      &lt;td style=&quot;text-align: left&quot;&gt;&lt;a href=&quot;https://eslint.org/docs/rules/block-scoped-var&quot;&gt;block-scoped-var&lt;/a&gt;&lt;/td&gt;
+      &lt;td style=&quot;text-align: left&quot;&gt;error&lt;/td&gt;
+      &lt;td style=&quot;text-align: left&quot;&gt;把var关键字看成块级作用域，防止变量提升导致的bug&lt;/td&gt;
+    &lt;/tr&gt;
+    &lt;tr&gt;
+      &lt;td style=&quot;text-align: left&quot;&gt;&lt;a href=&quot;https://eslint.org/docs/rules/class-methods-use-this&quot;&gt;class-methods-use-this&lt;/a&gt;&lt;/td&gt;
+      &lt;td style=&quot;text-align: left&quot;&gt;error&lt;/td&gt;
+      &lt;td style=&quot;text-align: left&quot;&gt;要求在Class里面合理使用this，如果某个方法没有使用this,则应该申明为静态方法&lt;/td&gt;
+    &lt;/tr&gt;
+    &lt;tr&gt;
+      &lt;td style=&quot;text-align: left&quot;&gt;&lt;a href=&quot;https://eslint.org/docs/rules/complexity&quot;&gt;complexity&lt;/a&gt;&lt;/td&gt;
+      &lt;td style=&quot;text-align: left&quot;&gt;off&lt;/td&gt;
+      &lt;td style=&quot;text-align: left&quot;&gt;关闭代码复杂度限制&lt;/td&gt;
+    &lt;/tr&gt;
+    &lt;tr&gt;
+      &lt;td style=&quot;text-align: left&quot;&gt;&lt;a href=&quot;https://eslint.org/docs/rules/default-case&quot;&gt;default-case&lt;/a&gt;&lt;/td&gt;
+      &lt;td style=&quot;text-align: left&quot;&gt;error&lt;/td&gt;
+      &lt;td style=&quot;text-align: left&quot;&gt;switch case语句里面一定需要default分支&lt;/td&gt;
     &lt;/tr&gt;
   &lt;/tbody&gt;
 &lt;/table&gt;
 
-&lt;blockquote&gt;
-  &lt;p&gt;If you happen to be using this theme, welcome to &lt;a href=&quot;https://github.com/onevcat/vno-jekyll/pulls&quot;&gt;send me a pull request&lt;/a&gt; to add your site link here. :)&lt;/p&gt;
-&lt;/blockquote&gt;
+&lt;p&gt;ESLint的执行可以接入到PUSH hook里面，步骤如下：&lt;/p&gt;
+&lt;div class=&quot;language-bash highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;c&quot;&gt;#1, 安装husky&lt;/span&gt;
+&lt;span class=&quot;gp&quot;&gt;$ &lt;/span&gt;npm install husky --save-dev
 
-&lt;h4 id=&quot;license&quot;&gt;License&lt;/h4&gt;
+&lt;span class=&quot;c&quot;&gt;#2, 集成进npm script&lt;/span&gt;
+&lt;span class=&quot;o&quot;&gt;{&lt;/span&gt;
+  &lt;span class=&quot;s2&quot;&gt;&quot;scripts&quot;&lt;/span&gt;: &lt;span class=&quot;o&quot;&gt;{&lt;/span&gt;
+    &lt;span class=&quot;s2&quot;&gt;&quot;precommit&quot;&lt;/span&gt;: &lt;span class=&quot;s2&quot;&gt;&quot;validate-commit-msg&quot;&lt;/span&gt;,
+    &lt;span class=&quot;s2&quot;&gt;&quot;prepush&quot;&lt;/span&gt;: &lt;span class=&quot;s2&quot;&gt;&quot;eslint src ./.eslintrc.js --ext '.js,.jsx'&quot;&lt;/span&gt;
+  &lt;span class=&quot;o&quot;&gt;}&lt;/span&gt;
+&lt;span class=&quot;o&quot;&gt;}&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
 
-&lt;p&gt;Great thanks to &lt;a href=&quot;https://github.com/daleanthony&quot;&gt;Dale Anthony&lt;/a&gt; and his &lt;a href=&quot;https://github.com/daleanthony/uno&quot;&gt;Uno&lt;/a&gt;. Vno Jekyll is based on Uno, and contains a lot of modification on page layout, animation, font and some more things I can not remember. Vno Jekyll is followed with Uno and be licensed as &lt;a href=&quot;http://creativecommons.org/licenses/by/4.0/&quot;&gt;Creative Commons Attribution 4.0 International&lt;/a&gt;. See the link for more information.&lt;/p&gt;
+&lt;h3 id=&quot;cli设计&quot;&gt;CLI设计&lt;/h3&gt;
+&lt;p&gt;CLI的作用是将工程开发过程中遇到的一系列痛点问题连接起来，提升开发效率，同时保障规范的实施。&lt;/p&gt;
+
+&lt;p&gt;&lt;img src=&quot;https://pub.idqqimg.com/pc/misc/files/20170921/f81f93c5be874ed1b7c90b7fbb56ce87.jpg&quot; alt=&quot;&quot; /&gt;&lt;/p&gt;
+
+&lt;h3 id=&quot;插件设计&quot;&gt;插件设计&lt;/h3&gt;
+&lt;h4 id=&quot;插件实现原理&quot;&gt;插件实现原理&lt;/h4&gt;
+&lt;p&gt;这里有一个非常巧妙的设计，通过使用node提供的module和vm模块，可以通注入feflow全局变量来访问到cli的实例。从而能够访问cli上的各种属性，比如config, log和一些helper等。&lt;/p&gt;
+&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt; loadPlugin(path, callback) {
+    const self = this;
+
+    return fs.readFile(path).then((script) =&amp;gt; {
+
+      const module = new Module(path);
+      module.filename = path;
+      module.paths = Module._nodeModulePaths(path);
+
+      function require(path) {
+          return module.require(path);
+      }
+
+      require.resolve = function(request) {
+          return Module._resolveFilename(request, module);
+      };
+
+      require.main = process.mainModule;
+      require.extensions = Module._extensions;
+      require.cache = Module._cache;
+
+      // Inject feflow variable
+      script = '(function(exports, require, module, __filename, __dirname, feflow){' +
+          script + '});';
+
+      const fn = vm.runInThisContext(script, path);
+
+      return fn(module.exports, require, module, path, pathFn.dirname(path), self);
+      }).asCallback(callback);
+  }
+&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+
+&lt;h4 id=&quot;命令注册&quot;&gt;命令注册：&lt;/h4&gt;
+
+&lt;p&gt;命令需要以feflow.cmd.register进行注册，比如：&lt;/p&gt;
+
+&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;feflow.cmd.register('deps', 'Config ivweb dependencies', function(args) {
+    console.log(args);
+    // Plugin logic here.
+});
+&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+
+&lt;p&gt;说明：&lt;/p&gt;
+&lt;ul&gt;
+  &lt;li&gt;register有3个参数，第一个是子命令名称，第二个是命令描述说明信息，第三个是对应的子命令执行逻辑函数。&lt;/li&gt;
+  &lt;li&gt;feflow会将命令行参数args解析成Object对象，传递给插件处理函数&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;h4 id=&quot;配置&quot;&gt;配置&lt;/h4&gt;
+&lt;p&gt;可以通过feflow.version获取当前feflow的版本，feflow.baseDir 获取feflow跟目录（在用户目录下的.feflow），通过feflow.pluginDir 获取插件目录&lt;/p&gt;
+
+&lt;h4 id=&quot;日志&quot;&gt;日志&lt;/h4&gt;
+&lt;p&gt;通过feflow.log来进行相关命令行日志输出&lt;/p&gt;
+
+&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;const log = feflow.log;
+log.info()    // 提示日志，控制台中显示绿色
+log.debug()   // 调试日志,  命令行增加--debug可以开启，控制台中显示灰色
+log.warn()    // 警告日志，控制台中显示黄色背景
+log.error()   // 错误日志，控制台中显示红色
+log.fatal()   // 致命错误日志，，控制台中显示红色
+&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+
+&lt;h3 id=&quot;最后&quot;&gt;最后&lt;/h3&gt;
+&lt;p&gt;感谢OSC源创汇提供的交流机会，能和广大开发者分享和交流学习。NOW直播IVWEB团队的工程化解决方案如下：&lt;/p&gt;
+&lt;ul&gt;
+  &lt;li&gt;Github主页：https://github.com/cpselvis/feflow-cli&lt;/li&gt;
+  &lt;li&gt;码云主页：https://gitee.com/cpselvis/feflow-cli&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;附件：&lt;a href=&quot;https://github.com/cpselvis/sharing/blob/master/ppt/%E6%88%90%E9%83%BDOSC%E5%88%86%E4%BA%AB2017-09-23/Node.js%E5%9C%A8CLI%E4%B8%8B%E5%B7%A5%E7%A8%8B%E5%8C%96%E4%BD%93%E7%B3%BB%E5%AE%9E%E8%B7%B5.pdf&quot;&gt;本次分享PPT&lt;/a&gt;&lt;/p&gt;
 </description>
-        <pubDate>Tue, 16 Feb 2016 14:32:24 +0800</pubDate>
-        <link>http://localhost:4000/2016/02/hello-world-vno/</link>
-        <guid isPermaLink="true">http://localhost:4000/2016/02/hello-world-vno/</guid>
+        <pubDate>Tue, 26 Sep 2017 15:18:24 +0800</pubDate>
+        <link>http://localhost:4000/2017/09/Node.js%E5%9C%A8CLI%E4%B8%8B%E7%9A%84%E5%B7%A5%E7%A8%8B%E5%8C%96%E4%BD%93%E7%B3%BB%E5%AE%9E%E8%B7%B5-%E6%88%90%E9%83%BDOSC%E6%BA%90%E5%88%9B%E4%BC%9A%E5%88%86%E4%BA%AB%E6%80%BB%E7%BB%93/</link>
+        <guid isPermaLink="true">http://localhost:4000/2017/09/Node.js%E5%9C%A8CLI%E4%B8%8B%E7%9A%84%E5%B7%A5%E7%A8%8B%E5%8C%96%E4%BD%93%E7%B3%BB%E5%AE%9E%E8%B7%B5-%E6%88%90%E9%83%BDOSC%E6%BA%90%E5%88%9B%E4%BC%9A%E5%88%86%E4%BA%AB%E6%80%BB%E7%BB%93/</guid>
         
         
       </item>
     
       <item>
-        <title>Sample Post</title>
-        <description>&lt;p&gt;You’ll find this post in your &lt;code class=&quot;highlighter-rouge&quot;&gt;_posts&lt;/code&gt; directory. Go ahead and edit it and re-build the site to see your changes. You can rebuild the site in many different ways, but the most common way is to run &lt;code class=&quot;highlighter-rouge&quot;&gt;jekyll serve&lt;/code&gt;, which launches a web server and auto-regenerates your site when a file is updated.&lt;/p&gt;
+        <title>python编写知乎爬虫实践</title>
+        <description>&lt;h3 id=&quot;爬虫的基本流程&quot;&gt;爬虫的基本流程&lt;/h3&gt;
 
-&lt;p&gt;To add new posts, simply add a file in the &lt;code class=&quot;highlighter-rouge&quot;&gt;_posts&lt;/code&gt; directory that follows the convention &lt;code class=&quot;highlighter-rouge&quot;&gt;YYYY-MM-DD-name-of-post.ext&lt;/code&gt; and includes the necessary front matter. Take a look at the source for this post to get an idea about how it works.&lt;/p&gt;
+&lt;p&gt;&lt;img src=&quot;http://images2015.cnblogs.com/blog/1030776/201701/1030776-20170106154850769-354312570.png&quot; alt=&quot;&quot; /&gt;&lt;/p&gt;
 
-&lt;p&gt;Jekyll also offers powerful support for code snippets:&lt;/p&gt;
+&lt;p&gt;网络爬虫的基本工作流程如下：&lt;/p&gt;
+&lt;ul&gt;
+  &lt;li&gt;首先选取一部分精心挑选的种子URL&lt;/li&gt;
+  &lt;li&gt;将种子URL加入任务队列&lt;/li&gt;
+  &lt;li&gt;从待抓取URL队列中取出待抓取的URL，解析DNS，并且得到主机的ip，并将URL对应的网页下载下来，存储进已下载网页库中。此外，将这些URL放进已抓取URL队列。&lt;/li&gt;
+  &lt;li&gt;分析已抓取URL队列中的URL，分析其中的其他URL，并且将URL放入待抓取URL队列，从而进入下一个循环。&lt;/li&gt;
+  &lt;li&gt;解析下载下来的网页，将需要的数据解析出来。&lt;/li&gt;
+  &lt;li&gt;数据持久话，保存至数据库中。&lt;/li&gt;
+&lt;/ul&gt;
 
-&lt;figure class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-ruby&quot; data-lang=&quot;ruby&quot;&gt;&lt;span class=&quot;k&quot;&gt;def&lt;/span&gt; &lt;span class=&quot;nf&quot;&gt;print_hi&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;nb&quot;&gt;name&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
-  &lt;span class=&quot;nb&quot;&gt;puts&lt;/span&gt; &lt;span class=&quot;s2&quot;&gt;&quot;Hi, &lt;/span&gt;&lt;span class=&quot;si&quot;&gt;#{&lt;/span&gt;&lt;span class=&quot;nb&quot;&gt;name&lt;/span&gt;&lt;span class=&quot;si&quot;&gt;}&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;&lt;/span&gt;
-&lt;span class=&quot;k&quot;&gt;end&lt;/span&gt;
-&lt;span class=&quot;n&quot;&gt;print_hi&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s1&quot;&gt;'Tom'&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
-&lt;span class=&quot;c1&quot;&gt;#=&amp;gt; prints 'Hi, Tom' to STDOUT.&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/figure&gt;
+&lt;h3 id=&quot;爬虫的抓取策略&quot;&gt;爬虫的抓取策略&lt;/h3&gt;
+&lt;p&gt;在爬虫系统中，待抓取URL队列是很重要的一部分。待抓取URL队列中的URL以什么样的顺序排列也是一个很重要的问题，因为这涉及到先抓取那个页面，后抓取哪个页面。而决定这些URL排列顺序的方法，叫做抓取策略。下面重点介绍几种常见的抓取策略：&lt;/p&gt;
 
-&lt;p&gt;Check out the &lt;a href=&quot;http://jekyllrb.com/docs/home&quot;&gt;Jekyll docs&lt;/a&gt; for more info on how to get the most out of Jekyll. File all bugs/feature requests at &lt;a href=&quot;https://github.com/jekyll/jekyll&quot;&gt;Jekyll’s GitHub repo&lt;/a&gt;. If you have questions, you can ask them on &lt;a href=&quot;https://talk.jekyllrb.com/&quot;&gt;Jekyll Talk&lt;/a&gt;.&lt;/p&gt;
+&lt;p&gt;&lt;img src=&quot;http://images2015.cnblogs.com/blog/1030776/201701/1030776-20170106200044003-2044243273.jpg&quot; alt=&quot;&quot; /&gt;&lt;/p&gt;
 
+&lt;ul&gt;
+  &lt;li&gt;深度优先策略(DFS)
+深度优先策略是指爬虫从某个URL开始，一个链接一个链接的爬取下去，直到处理完了某个链接所在的所有线路，才切换到其它的线路。
+此时抓取顺序为：A -&amp;gt; B -&amp;gt; C -&amp;gt; D -&amp;gt; E -&amp;gt; F -&amp;gt; G -&amp;gt; H -&amp;gt; I -&amp;gt; J&lt;/li&gt;
+  &lt;li&gt;广度优先策略(BFS)
+宽度优先遍历策略的基本思路是，将新下载网页中发现的链接直接插入待抓取URL队列的末尾。也就是指网络爬虫会先抓取起始网页中链接的所有网页，然后再选择其中的一个链接网页，继续抓取在此网页中链接的所有网页。
+此时抓取顺序为：A -&amp;gt; B -&amp;gt; E -&amp;gt; G -&amp;gt; H -&amp;gt; I -&amp;gt; C -&amp;gt; F -&amp;gt; J -&amp;gt; D&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;了解了爬虫的工作流程和爬取策略后，就可以动手实现一个爬虫了！那么在python里怎么实现呢？&lt;/p&gt;
+
+&lt;h3 id=&quot;技术栈&quot;&gt;技术栈&lt;/h3&gt;
+&lt;ul&gt;
+  &lt;li&gt;&lt;a href=&quot;https://github.com/kennethreitz/requests&quot;&gt;requests&lt;/a&gt;  人性化的请求发送&lt;/li&gt;
+  &lt;li&gt;&lt;a href=&quot;https://en.wikipedia.org/wiki/Bloom_filter&quot;&gt;Bloom Filter&lt;/a&gt; 布隆过滤器，用于判重&lt;/li&gt;
+  &lt;li&gt;&lt;a href=&quot;https://en.wikipedia.org/wiki/XPath&quot;&gt;XPath&lt;/a&gt; 解析HTML内容&lt;/li&gt;
+  &lt;li&gt;&lt;a href=&quot;https://en.wikipedia.org/wiki/MurmurHash&quot;&gt;murmurhash&lt;/a&gt;&lt;/li&gt;
+  &lt;li&gt;Anti crawler strategy 反爬虫策略&lt;/li&gt;
+  &lt;li&gt;MySQL 用户数据存储&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;h3 id=&quot;基本实现&quot;&gt;基本实现&lt;/h3&gt;
+
+&lt;p&gt;下面是一个伪代码&lt;/p&gt;
+&lt;div class=&quot;language-python highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;kn&quot;&gt;import&lt;/span&gt; &lt;span class=&quot;nn&quot;&gt;Queue&lt;/span&gt;
+
+&lt;span class=&quot;n&quot;&gt;initial_page&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;s&quot;&gt;&quot;https://www.zhihu.com/people/gaoming623&quot;&lt;/span&gt;
+
+&lt;span class=&quot;n&quot;&gt;url_queue&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;Queue&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;Queue&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;()&lt;/span&gt;
+&lt;span class=&quot;n&quot;&gt;seen&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;nb&quot;&gt;set&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;()&lt;/span&gt;
+
+&lt;span class=&quot;n&quot;&gt;seen&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;insert&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;initial_page&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+&lt;span class=&quot;n&quot;&gt;url_queue&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;put&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;initial_page&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+
+&lt;span class=&quot;k&quot;&gt;while&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;bp&quot;&gt;True&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;):&lt;/span&gt; &lt;span class=&quot;c&quot;&gt;#一直进行&lt;/span&gt;
+    &lt;span class=&quot;k&quot;&gt;if&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;url_queue&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;size&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;()&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;&amp;gt;&lt;/span&gt;&lt;span class=&quot;mi&quot;&gt;0&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt;
+        &lt;span class=&quot;n&quot;&gt;current_url&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;url_queue&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;get&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;()&lt;/span&gt;              &lt;span class=&quot;c&quot;&gt;#拿出队例中第一个的url&lt;/span&gt;
+        &lt;span class=&quot;n&quot;&gt;store&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;current_url&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;                         &lt;span class=&quot;c&quot;&gt;#把这个url代表的网页存储好&lt;/span&gt;
+        &lt;span class=&quot;k&quot;&gt;for&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;next_url&lt;/span&gt; &lt;span class=&quot;ow&quot;&gt;in&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;extract_urls&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;current_url&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;):&lt;/span&gt; &lt;span class=&quot;c&quot;&gt;#提取把这个url里链向的url&lt;/span&gt;
+            &lt;span class=&quot;k&quot;&gt;if&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;next_url&lt;/span&gt; &lt;span class=&quot;ow&quot;&gt;not&lt;/span&gt; &lt;span class=&quot;ow&quot;&gt;in&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;seen&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt;      
+                &lt;span class=&quot;n&quot;&gt;seen&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;put&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;next_url&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+                &lt;span class=&quot;n&quot;&gt;url_queue&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;put&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;next_url&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+    &lt;span class=&quot;k&quot;&gt;else&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt;
+        &lt;span class=&quot;k&quot;&gt;break&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+
+&lt;p&gt;如果你直接加工一下上面的代码直接运行的话，你需要很长的时间才能爬下整个知乎用户的信息，毕竟知乎有6000万月活跃用户。更别说Google这样的搜索引擎需要爬下全网的内容了。那么问题出现在哪里？&lt;/p&gt;
+
+&lt;h3 id=&quot;布隆过滤器&quot;&gt;布隆过滤器&lt;/h3&gt;
+&lt;p&gt;需要爬的网页实在太多太多了，而上面的代码太慢太慢了。设想全网有N个网站，那么分析一下判重的复杂度就是N*log(N)，因为所有网页要遍历一次，而每次判重用set的话需要log(N)的复杂度。OK，我知道python的set实现是hash——不过这样还是太慢了，至少内存使用效率不高。&lt;/p&gt;
+
+&lt;p&gt;通常的判重做法是怎样呢？Bloom Filter. 简单讲它仍然是一种hash的方法，但是它的特点是，它可以使用固定的内存（不随url的数量而增长）以O(1)的效率判定url是否已经在set中。可惜天下没有白吃的午餐，它的唯一问题在于，如果这个url不在set中，BF可以100%确定这个url没有看过。但是如果这个url在set中，它会告诉你：这个url应该已经出现过，不过我有2%的不确定性。注意这里的不确定性在你分配的内存足够大的时候，可以变得很小很少。&lt;/p&gt;
+
+&lt;div class=&quot;language-python highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;
+&lt;span class=&quot;c&quot;&gt;# bloom_filter.py&lt;/span&gt;
+
+&lt;span class=&quot;n&quot;&gt;BIT_SIZE&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;mi&quot;&gt;5000000&lt;/span&gt;
+
+&lt;span class=&quot;k&quot;&gt;class&lt;/span&gt; &lt;span class=&quot;nc&quot;&gt;BloomFilter&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt;
+
+    &lt;span class=&quot;k&quot;&gt;def&lt;/span&gt; &lt;span class=&quot;nf&quot;&gt;__init__&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;bp&quot;&gt;self&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;):&lt;/span&gt;
+        &lt;span class=&quot;c&quot;&gt;# Initialize bloom filter, set size and all bits to 0&lt;/span&gt;
+        &lt;span class=&quot;n&quot;&gt;bit_array&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;bitarray&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;BIT_SIZE&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+        &lt;span class=&quot;n&quot;&gt;bit_array&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;setall&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;mi&quot;&gt;0&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+
+        &lt;span class=&quot;bp&quot;&gt;self&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;bit_array&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;bit_array&lt;/span&gt;
+
+    &lt;span class=&quot;k&quot;&gt;def&lt;/span&gt; &lt;span class=&quot;nf&quot;&gt;add&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;bp&quot;&gt;self&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;url&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;):&lt;/span&gt;
+        &lt;span class=&quot;c&quot;&gt;# Add a url, and set points in bitarray to 1 (Points count is equal to hash funcs count.)&lt;/span&gt;
+        &lt;span class=&quot;c&quot;&gt;# Here use 7 hash functions.&lt;/span&gt;
+        &lt;span class=&quot;n&quot;&gt;point_list&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;bp&quot;&gt;self&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;get_postions&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;url&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+
+        &lt;span class=&quot;k&quot;&gt;for&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;b&lt;/span&gt; &lt;span class=&quot;ow&quot;&gt;in&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;point_list&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt;
+            &lt;span class=&quot;bp&quot;&gt;self&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;bit_array&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;[&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;b&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;]&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;mi&quot;&gt;1&lt;/span&gt;
+
+    &lt;span class=&quot;k&quot;&gt;def&lt;/span&gt; &lt;span class=&quot;nf&quot;&gt;contains&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;bp&quot;&gt;self&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;url&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;):&lt;/span&gt;
+        &lt;span class=&quot;c&quot;&gt;# Check if a url is in a collection&lt;/span&gt;
+        &lt;span class=&quot;n&quot;&gt;point_list&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;bp&quot;&gt;self&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;get_postions&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;url&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+
+        &lt;span class=&quot;n&quot;&gt;result&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;bp&quot;&gt;True&lt;/span&gt;
+        &lt;span class=&quot;k&quot;&gt;for&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;b&lt;/span&gt; &lt;span class=&quot;ow&quot;&gt;in&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;point_list&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt;
+            &lt;span class=&quot;n&quot;&gt;result&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;result&lt;/span&gt; &lt;span class=&quot;ow&quot;&gt;and&lt;/span&gt; &lt;span class=&quot;bp&quot;&gt;self&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;bit_array&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;[&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;b&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;]&lt;/span&gt;
+
+        &lt;span class=&quot;k&quot;&gt;return&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;result&lt;/span&gt;
+
+    &lt;span class=&quot;k&quot;&gt;def&lt;/span&gt; &lt;span class=&quot;nf&quot;&gt;get_postions&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;bp&quot;&gt;self&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;url&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;):&lt;/span&gt;
+        &lt;span class=&quot;c&quot;&gt;# Get points positions in bit vector.&lt;/span&gt;
+        &lt;span class=&quot;n&quot;&gt;point1&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;mmh3&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;nb&quot;&gt;hash&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;url&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;mi&quot;&gt;41&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;%&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;BIT_SIZE&lt;/span&gt;
+        &lt;span class=&quot;n&quot;&gt;point2&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;mmh3&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;nb&quot;&gt;hash&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;url&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;mi&quot;&gt;42&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;%&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;BIT_SIZE&lt;/span&gt;
+        &lt;span class=&quot;n&quot;&gt;point3&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;mmh3&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;nb&quot;&gt;hash&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;url&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;mi&quot;&gt;43&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;%&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;BIT_SIZE&lt;/span&gt;
+        &lt;span class=&quot;n&quot;&gt;point4&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;mmh3&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;nb&quot;&gt;hash&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;url&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;mi&quot;&gt;44&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;%&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;BIT_SIZE&lt;/span&gt;
+        &lt;span class=&quot;n&quot;&gt;point5&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;mmh3&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;nb&quot;&gt;hash&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;url&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;mi&quot;&gt;45&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;%&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;BIT_SIZE&lt;/span&gt;
+        &lt;span class=&quot;n&quot;&gt;point6&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;mmh3&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;nb&quot;&gt;hash&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;url&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;mi&quot;&gt;46&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;%&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;BIT_SIZE&lt;/span&gt;
+        &lt;span class=&quot;n&quot;&gt;point7&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;mmh3&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;nb&quot;&gt;hash&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;url&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;mi&quot;&gt;47&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;%&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;BIT_SIZE&lt;/span&gt;
+
+
+        &lt;span class=&quot;k&quot;&gt;return&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;[&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;point1&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;point2&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;point3&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;point4&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;point5&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;point6&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;point7&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;]&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+
+&lt;p&gt;BF详细的原理参考我之前写的文章：&lt;a href=&quot;http://www.cnblogs.com/cpselvis/p/6265825.html&quot;&gt;布隆过滤器(Bloom Filter)的原理和实现&lt;/a&gt;&lt;/p&gt;
+
+&lt;h3 id=&quot;建表&quot;&gt;建表&lt;/h3&gt;
+&lt;p&gt;用户有价值的信息包括用户名、简介、行业、院校、专业及在平台上活动的数据比如回答数、文章数、提问数、粉丝数等等。&lt;/p&gt;
+
+&lt;p&gt;用户信息存储的表结构如下：&lt;/p&gt;
+&lt;div class=&quot;language-sql highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;k&quot;&gt;CREATE&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;DATABASE&lt;/span&gt; &lt;span class=&quot;nv&quot;&gt;`zhihu_user`&lt;/span&gt; &lt;span class=&quot;cm&quot;&gt;/*!40100 DEFAULT CHARACTER SET utf8 */&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;;&lt;/span&gt;
+
+
+&lt;span class=&quot;c1&quot;&gt;-- User base information table&lt;/span&gt;
+&lt;span class=&quot;k&quot;&gt;CREATE&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;TABLE&lt;/span&gt; &lt;span class=&quot;nv&quot;&gt;`t_user`&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;
+  &lt;span class=&quot;nv&quot;&gt;`uid`&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;bigint&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;mi&quot;&gt;20&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;unsigned&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;NOT&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;NULL&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;AUTO_INCREMENT&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt;
+  &lt;span class=&quot;nv&quot;&gt;`username`&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;varchar&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;mi&quot;&gt;50&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;NOT&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;NULL&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;COMMENT&lt;/span&gt; &lt;span class=&quot;s1&quot;&gt;'用户名'&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt;                      
+  &lt;span class=&quot;nv&quot;&gt;`brief_info`&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;varchar&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;mi&quot;&gt;400&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;  &lt;span class=&quot;k&quot;&gt;COMMENT&lt;/span&gt; &lt;span class=&quot;s1&quot;&gt;'个人简介'&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt;
+  &lt;span class=&quot;nv&quot;&gt;`industry`&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;varchar&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;mi&quot;&gt;50&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;COMMENT&lt;/span&gt; &lt;span class=&quot;s1&quot;&gt;'所处行业'&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt;             
+  &lt;span class=&quot;nv&quot;&gt;`education`&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;varchar&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;mi&quot;&gt;50&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;COMMENT&lt;/span&gt; &lt;span class=&quot;s1&quot;&gt;'毕业院校'&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt;             
+  &lt;span class=&quot;nv&quot;&gt;`major`&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;varchar&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;mi&quot;&gt;50&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;COMMENT&lt;/span&gt; &lt;span class=&quot;s1&quot;&gt;'主修专业'&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt;
+  &lt;span class=&quot;nv&quot;&gt;`answer_count`&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;int&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;mi&quot;&gt;10&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;unsigned&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;DEFAULT&lt;/span&gt; &lt;span class=&quot;mi&quot;&gt;0&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;COMMENT&lt;/span&gt; &lt;span class=&quot;s1&quot;&gt;'回答数'&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt;
+  &lt;span class=&quot;nv&quot;&gt;`article_count`&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;int&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;mi&quot;&gt;10&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;unsigned&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;DEFAULT&lt;/span&gt; &lt;span class=&quot;mi&quot;&gt;0&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;COMMENT&lt;/span&gt; &lt;span class=&quot;s1&quot;&gt;'文章数'&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt;
+  &lt;span class=&quot;nv&quot;&gt;`ask_question_count`&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;int&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;mi&quot;&gt;10&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;unsigned&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;DEFAULT&lt;/span&gt; &lt;span class=&quot;mi&quot;&gt;0&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;COMMENT&lt;/span&gt; &lt;span class=&quot;s1&quot;&gt;'提问数'&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt;
+  &lt;span class=&quot;nv&quot;&gt;`collection_count`&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;int&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;mi&quot;&gt;10&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;unsigned&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;DEFAULT&lt;/span&gt; &lt;span class=&quot;mi&quot;&gt;0&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;COMMENT&lt;/span&gt; &lt;span class=&quot;s1&quot;&gt;'收藏数'&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt;
+  &lt;span class=&quot;nv&quot;&gt;`follower_count`&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;int&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;mi&quot;&gt;10&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;unsigned&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;DEFAULT&lt;/span&gt; &lt;span class=&quot;mi&quot;&gt;0&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;COMMENT&lt;/span&gt; &lt;span class=&quot;s1&quot;&gt;'被关注数'&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt;
+  &lt;span class=&quot;nv&quot;&gt;`followed_count`&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;int&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;mi&quot;&gt;10&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;unsigned&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;DEFAULT&lt;/span&gt; &lt;span class=&quot;mi&quot;&gt;0&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;COMMENT&lt;/span&gt; &lt;span class=&quot;s1&quot;&gt;'关注数'&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt;
+  &lt;span class=&quot;nv&quot;&gt;`follow_live_count`&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;int&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;mi&quot;&gt;10&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;unsigned&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;DEFAULT&lt;/span&gt; &lt;span class=&quot;mi&quot;&gt;0&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;COMMENT&lt;/span&gt; &lt;span class=&quot;s1&quot;&gt;'关注直播数'&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt;
+  &lt;span class=&quot;nv&quot;&gt;`follow_topic_count`&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;int&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;mi&quot;&gt;10&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;unsigned&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;DEFAULT&lt;/span&gt; &lt;span class=&quot;mi&quot;&gt;0&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;COMMENT&lt;/span&gt; &lt;span class=&quot;s1&quot;&gt;'关注话题数'&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt;
+  &lt;span class=&quot;nv&quot;&gt;`follow_column_count`&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;int&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;mi&quot;&gt;10&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;unsigned&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;DEFAULT&lt;/span&gt; &lt;span class=&quot;mi&quot;&gt;0&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;COMMENT&lt;/span&gt; &lt;span class=&quot;s1&quot;&gt;'关注专栏数'&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt;
+  &lt;span class=&quot;nv&quot;&gt;`follow_question_count`&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;int&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;mi&quot;&gt;10&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;unsigned&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;DEFAULT&lt;/span&gt; &lt;span class=&quot;mi&quot;&gt;0&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;COMMENT&lt;/span&gt; &lt;span class=&quot;s1&quot;&gt;'关注问题数'&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt;
+  &lt;span class=&quot;nv&quot;&gt;`follow_collection_count`&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;int&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;mi&quot;&gt;10&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;unsigned&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;DEFAULT&lt;/span&gt; &lt;span class=&quot;mi&quot;&gt;0&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;COMMENT&lt;/span&gt; &lt;span class=&quot;s1&quot;&gt;'关注收藏夹数'&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt;
+  &lt;span class=&quot;nv&quot;&gt;`gmt_create`&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;datetime&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;NOT&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;NULL&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;COMMENT&lt;/span&gt; &lt;span class=&quot;s1&quot;&gt;'创建时间'&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt;   
+  &lt;span class=&quot;nv&quot;&gt;`gmt_modify`&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;timestamp&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;NOT&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;NULL&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;DEFAULT&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;CURRENT_TIMESTAMP&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;COMMENT&lt;/span&gt; &lt;span class=&quot;s1&quot;&gt;'最后一次编辑'&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt;             
+  &lt;span class=&quot;k&quot;&gt;PRIMARY&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;KEY&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;nv&quot;&gt;`uid`&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;ENGINE&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;MyISAM&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;AUTO_INCREMENT&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;&lt;span class=&quot;mi&quot;&gt;1&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;DEFAULT&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;CHARSET&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;utf8&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;COMMENT&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;&lt;span class=&quot;s1&quot;&gt;'用户基本信息表'&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;;&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+
+&lt;p&gt;网页下载后通过XPath进行解析，提取用户各个维度的数据，最后保存到数据库中。&lt;/p&gt;
+
+&lt;h3 id=&quot;反爬虫策略应对-headers&quot;&gt;反爬虫策略应对-Headers&lt;/h3&gt;
+
+&lt;p&gt;一般网站会从几个维度来反爬虫：用户请求的Headers，用户行为，网站和数据加载的方式。从用户请求的Headers反爬虫是最常见的策略，很多网站都会对Headers的User-Agent进行检测，还有一部分网站会对Referer进行检测（一些资源网站的防盗链就是检测Referer）。&lt;/p&gt;
+
+&lt;p&gt;如果遇到了这类反爬虫机制，可以直接在爬虫中添加Headers，将浏览器的User-Agent复制到爬虫的Headers中；或者将Referer值修改为目标网站域名。对于检测Headers的反爬虫，在爬虫中修改或者添加Headers就能很好的绕过。&lt;/p&gt;
+
+&lt;div class=&quot;language-python highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;n&quot;&gt;cookies&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;
+    &lt;span class=&quot;s&quot;&gt;&quot;d_c0&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;s&quot;&gt;&quot;AECA7v-aPwqPTiIbemmIQ8abhJy7bdD2VgE=|1468847182&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt;
+    &lt;span class=&quot;s&quot;&gt;&quot;login&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;s&quot;&gt;&quot;NzM5ZDc2M2JkYzYwNDZlOGJlYWQ1YmI4OTg5NDhmMTY=|1480901173|9c296f424b32f241d1471203244eaf30729420f0&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt;
+    &lt;span class=&quot;s&quot;&gt;&quot;n_c&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;s&quot;&gt;&quot;1&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt;
+    &lt;span class=&quot;s&quot;&gt;&quot;q_c1&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;s&quot;&gt;&quot;395b12e529e541cbb400e9718395e346|1479808003000|1468847182000&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt;
+    &lt;span class=&quot;s&quot;&gt;&quot;l_cap_id&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;s&quot;&gt;&quot;NzI0MTQwZGY2NjQyNDQ1NThmYTY0MjJhYmU2NmExMGY=|1480901160|2e7a7faee3b3e8d0afb550e8e7b38d86c15a31bc&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt;
+    &lt;span class=&quot;s&quot;&gt;&quot;d_c0&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;s&quot;&gt;&quot;AECA7v-aPwqPTiIbemmIQ8abhJy7bdD2VgE=|1468847182&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt;
+    &lt;span class=&quot;s&quot;&gt;&quot;cap_id&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;s&quot;&gt;&quot;N2U1NmQwODQ1NjFiNGI2Yzg2YTE2NzJkOTU5N2E0NjI=|1480901160|fd59e2ed79faacc2be1010687d27dd559ec1552a&quot;&lt;/span&gt;
+&lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;
+
+&lt;span class=&quot;n&quot;&gt;headers&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;
+    &lt;span class=&quot;s&quot;&gt;&quot;User-Agent&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;s&quot;&gt;&quot;Mozilla/5.0 (Macintosh; Intel Mac OS X 10_12_1) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/54.0.2840.98 Safari/537.3&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt;
+    &lt;span class=&quot;s&quot;&gt;&quot;Referer&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;s&quot;&gt;&quot;https://www.zhihu.com/&quot;&lt;/span&gt;
+&lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;
+
+&lt;span class=&quot;n&quot;&gt;r&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;requests&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;get&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;url&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;cookies&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;cookies&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;headers&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;headers&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+
+&lt;h3 id=&quot;反爬虫策略应对-代理ip池&quot;&gt;反爬虫策略应对-代理IP池&lt;/h3&gt;
+
+&lt;p&gt;还有一部分网站是通过检测用户行为，例如同一IP短时间内多次访问同一页面，或者同一账户短时间内多次进行相同操作。&lt;/p&gt;
+
+&lt;p&gt;大多数网站都是前一种情况，对于这种情况，使用IP代理就可以解决。这样的代理ip爬虫经常会用到，最好自己准备一个。有了大量代理ip后可以每请求几次更换一个ip，这在requests或者urllib2中很容易做到，这样就能很容易的绕过第一种反爬虫。目前知乎已经对爬虫做了限制，如果是单个IP的话，一段时间系统便会提示异常流量，无法继续爬取了。因此代理IP池非常关键。网上有个免费的代理IP API: http://api.xicidaili.com/free2016.txt&lt;/p&gt;
+
+&lt;div class=&quot;language-python highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;kn&quot;&gt;import&lt;/span&gt; &lt;span class=&quot;nn&quot;&gt;requests&lt;/span&gt;
+&lt;span class=&quot;kn&quot;&gt;import&lt;/span&gt; &lt;span class=&quot;nn&quot;&gt;random&lt;/span&gt;
+
+&lt;span class=&quot;k&quot;&gt;class&lt;/span&gt; &lt;span class=&quot;nc&quot;&gt;Proxy&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt;
+
+    &lt;span class=&quot;k&quot;&gt;def&lt;/span&gt; &lt;span class=&quot;nf&quot;&gt;__init__&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;bp&quot;&gt;self&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;):&lt;/span&gt;
+        &lt;span class=&quot;bp&quot;&gt;self&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;cache_ip_list&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;[]&lt;/span&gt;
+
+    &lt;span class=&quot;c&quot;&gt;# Get random ip from free proxy api url.&lt;/span&gt;
+    &lt;span class=&quot;k&quot;&gt;def&lt;/span&gt; &lt;span class=&quot;nf&quot;&gt;get_random_ip&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;bp&quot;&gt;self&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;):&lt;/span&gt;
+        &lt;span class=&quot;k&quot;&gt;if&lt;/span&gt; &lt;span class=&quot;ow&quot;&gt;not&lt;/span&gt; &lt;span class=&quot;nb&quot;&gt;len&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;bp&quot;&gt;self&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;cache_ip_list&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;):&lt;/span&gt;
+            &lt;span class=&quot;n&quot;&gt;api_url&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;s&quot;&gt;'http://api.xicidaili.com/free2016.txt'&lt;/span&gt;
+            &lt;span class=&quot;k&quot;&gt;try&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt;
+                &lt;span class=&quot;n&quot;&gt;r&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;requests&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;get&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;api_url&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+                &lt;span class=&quot;n&quot;&gt;ip_list&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;r&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;text&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;split&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;'&lt;/span&gt;&lt;span class=&quot;se&quot;&gt;\r\n&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;'&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+                &lt;span class=&quot;bp&quot;&gt;self&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;cache_ip_list&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;ip_list&lt;/span&gt;
+            &lt;span class=&quot;k&quot;&gt;except&lt;/span&gt; &lt;span class=&quot;nb&quot;&gt;Exception&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;as&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;e&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt;
+                &lt;span class=&quot;c&quot;&gt;# Return null list when caught exception.&lt;/span&gt;
+                &lt;span class=&quot;c&quot;&gt;# In this case, crawler will not use proxy ip.&lt;/span&gt;
+                &lt;span class=&quot;k&quot;&gt;print&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;e&lt;/span&gt;
+                &lt;span class=&quot;k&quot;&gt;return&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{}&lt;/span&gt;
+
+        &lt;span class=&quot;n&quot;&gt;proxy_ip&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;random&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;choice&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;bp&quot;&gt;self&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;cache_ip_list&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+        &lt;span class=&quot;n&quot;&gt;proxies&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;'http'&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;s&quot;&gt;'http://'&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;+&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;proxy_ip&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;
+        &lt;span class=&quot;k&quot;&gt;return&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;proxies&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+
+&lt;h3 id=&quot;后续&quot;&gt;后续&lt;/h3&gt;
+&lt;ul&gt;
+  &lt;li&gt;使用日志模块记录爬取日志和错误日志&lt;/li&gt;
+  &lt;li&gt;分布式任务队列和分布式爬虫&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;爬虫源代码：&lt;a href=&quot;https://github.com/cpselvis/zhihu-crawler&quot;&gt;zhihu-crawler&lt;/a&gt; 下载之后通过pip安装相关三方包后，运行$ python crawler.py即可（喜欢的帮忙点个star哈，同时也方便看到后续功能的更新）&lt;/p&gt;
+
+&lt;p&gt;运行截图：
+&lt;img src=&quot;http://images2015.cnblogs.com/blog/1030776/201706/1030776-20170613171518618-1863507532.png&quot; alt=&quot;&quot; /&gt;&lt;/p&gt;
 </description>
-        <pubDate>Mon, 15 Feb 2016 14:32:24 +0800</pubDate>
-        <link>http://localhost:4000/2016/02/sample-post/</link>
-        <guid isPermaLink="true">http://localhost:4000/2016/02/sample-post/</guid>
+        <pubDate>Tue, 13 Jun 2017 15:18:24 +0800</pubDate>
+        <link>http://localhost:4000/2017/06/python%E7%BC%96%E5%86%99%E7%9F%A5%E4%B9%8E%E7%88%AC%E8%99%AB%E5%AE%9E%E8%B7%B5/</link>
+        <guid isPermaLink="true">http://localhost:4000/2017/06/python%E7%BC%96%E5%86%99%E7%9F%A5%E4%B9%8E%E7%88%AC%E8%99%AB%E5%AE%9E%E8%B7%B5/</guid>
+        
+        
+      </item>
+    
+      <item>
+        <title>编写原生的Node.js模块</title>
+        <description>&lt;blockquote&gt;
+  &lt;p&gt;导语：当Javascript的性能遭遇瓶颈，或者需要增强Javascript能力的时候，就需要依赖native模块来实现了。&lt;/p&gt;
+&lt;/blockquote&gt;
+
+&lt;h3 id=&quot;应用场景&quot;&gt;应用场景&lt;/h3&gt;
+&lt;p&gt;日常工作中，我们经常需要将原生的Node.js模块做为依赖并在项目中进行使用。下面有个列表，你可能对它们的名字很熟悉:&lt;/p&gt;
+&lt;ul&gt;
+  &lt;li&gt;&lt;a href=&quot;https://github.com/sass/node-sass&quot;&gt;node-sass&lt;/a&gt; 将sass文件编译成css文件&lt;/li&gt;
+  &lt;li&gt;&lt;a href=&quot;https://github.com/wadey/node-microtime&quot;&gt;node-microtime&lt;/a&gt;: 扩展Javascript的时间精度&lt;/li&gt;
+  &lt;li&gt;&lt;a href=&quot;https://github.com/node-inspector&quot;&gt;node-inspector&lt;/a&gt;：进行调试&lt;/li&gt;
+  &lt;li&gt;&lt;a href=&quot;https://github.com/node-inspector/v8-profiler&quot;&gt;v8-profiler&lt;/a&gt;：性能及内存使用分析&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;通常，我们开发原生Node.js模块包括但不仅限于以下原因：&lt;/p&gt;
+&lt;ul&gt;
+  &lt;li&gt;对性能有比较苛刻要求的应用。尽管Node.js得益于libuv，在异步I/O操作很有优势，但遇到数字计算时并不是一个很好的选择。&lt;/li&gt;
+  &lt;li&gt;使用更加底层的API，比如操作系统层面的。&lt;/li&gt;
+  &lt;li&gt;在C/C++和Node.js之间创建一个Bridge，进行通信。&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;h3 id=&quot;什么是原生模块&quot;&gt;什么是原生模块？&lt;/h3&gt;
+&lt;p&gt;Node.js Addons是动态链接的可共享对象，由C/C++编写而成。可以在Node.js中通过&lt;code class=&quot;highlighter-rouge&quot;&gt;require()&lt;/code&gt;方法进行调用，使用起来像调用Node.js普通模块一样。 —— 来自&lt;a href=&quot;https://nodejs.org/dist/latest-v6.x/docs/api/addons.html#addons_c_c_addons&quot;&gt;Node.js官方文档&lt;/a&gt;&lt;/p&gt;
+
+&lt;p&gt;这意味着如果处理得当的话，模块调用者使用由C/C++编写的原生模块的方式和由Node.js编写的模块一样。想要编写Node.js addons，你需要了解一些基本知识：&lt;/p&gt;
+&lt;ul&gt;
+  &lt;li&gt;&lt;a href=&quot;http://docs.libuv.org/en/v1.x/&quot;&gt;Libuv&lt;/a&gt;&lt;/li&gt;
+  &lt;li&gt;&lt;a href=&quot;https://github.com/v8/v8/wiki&quot;&gt;V8&lt;/a&gt;&lt;/li&gt;
+  &lt;li&gt;&lt;a href=&quot;https://nodejs.org/api/&quot;&gt;Node.js internals&lt;/a&gt;&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;推荐阅读这些资料。&lt;/p&gt;
+
+&lt;h3 id=&quot;创建nodejs的原生扩展模块&quot;&gt;创建Node.js的原生扩展模块&lt;/h3&gt;
+&lt;p&gt;下面我以一个常见的动态规划问题-青蛙跳台阶为例子来说明如何创建一个原生的Node.js模块。青蛙跳台阶描述为：一只青蛙一次可以跳上一级台阶，也可以跳上2级台阶，求该青蛙跳上n级台阶的共有多少种跳法？&lt;/p&gt;
+
+&lt;p&gt;首先创建一个frog_jump.cc原生文件，.cc的意思是c with class，扩展名也可以是.cpp。&lt;a href=&quot;https://google.github.io/styleguide/cppguide.html&quot;&gt;Google Style Guide&lt;/a&gt;建议使用.cc，那么此处还是以.cc做为扩展名吧。代码如下：&lt;/p&gt;
+&lt;div class=&quot;language-cpp highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;cp&quot;&gt;#include &amp;lt;node.h&amp;gt;
+#include&amp;lt;vector&amp;gt;
+&lt;/span&gt;
+&lt;span class=&quot;cm&quot;&gt;/**
+ * Native method, calculate all ways frog jump to a target stair.
+ */&lt;/span&gt;
+&lt;span class=&quot;kt&quot;&gt;int&lt;/span&gt; &lt;span class=&quot;nf&quot;&gt;climbStairs&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;kt&quot;&gt;int&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;n&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;
+  &lt;span class=&quot;n&quot;&gt;std&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;::&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;vector&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;&amp;lt;&lt;/span&gt;&lt;span class=&quot;kt&quot;&gt;int&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;&amp;gt;&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;dp&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;n&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;);&lt;/span&gt;
+
+  &lt;span class=&quot;n&quot;&gt;dp&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;[&lt;/span&gt;&lt;span class=&quot;mi&quot;&gt;1&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;]&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;mi&quot;&gt;1&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;;&lt;/span&gt;
+  &lt;span class=&quot;n&quot;&gt;dp&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;[&lt;/span&gt;&lt;span class=&quot;mi&quot;&gt;2&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;]&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;mi&quot;&gt;2&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;;&lt;/span&gt;
+
+  &lt;span class=&quot;k&quot;&gt;for&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;kt&quot;&gt;int&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;i&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;mi&quot;&gt;3&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;;&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;i&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;&amp;lt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;n&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;;&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;i&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;++&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;)&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;
+    &lt;span class=&quot;n&quot;&gt;dp&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;[&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;i&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;]&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;dp&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;[&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;i&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;-&lt;/span&gt; &lt;span class=&quot;mi&quot;&gt;1&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;]&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;+&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;dp&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;[&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;i&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;-&lt;/span&gt; &lt;span class=&quot;mi&quot;&gt;2&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;];&lt;/span&gt;
+  &lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;
+  &lt;span class=&quot;k&quot;&gt;return&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;dp&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;[&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;n&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;];&lt;/span&gt;
+&lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;
+
+&lt;span class=&quot;cm&quot;&gt;/**
+ * Export native method jumpTo
+ */&lt;/span&gt;
+&lt;span class=&quot;kt&quot;&gt;void&lt;/span&gt; &lt;span class=&quot;nf&quot;&gt;JumpTo&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;k&quot;&gt;const&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;v8&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;::&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;FunctionCallbackInfo&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;&amp;lt;&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;v8&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;::&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;Value&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;&amp;gt;&amp;amp;&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;args&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;
+  &lt;span class=&quot;n&quot;&gt;v8&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;::&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;Isolate&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;*&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;isolate&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;args&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;GetIsolate&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;();&lt;/span&gt;
+
+  &lt;span class=&quot;c1&quot;&gt;// Check input type
+&lt;/span&gt;  &lt;span class=&quot;k&quot;&gt;if&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;!&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;args&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;[&lt;/span&gt;&lt;span class=&quot;mi&quot;&gt;0&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;]&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;-&amp;gt;&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;IsNumber&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;())&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;
+    &lt;span class=&quot;n&quot;&gt;isolate&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;-&amp;gt;&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;ThrowException&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;v8&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;::&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;Exception&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;::&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;TypeError&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;
+      &lt;span class=&quot;n&quot;&gt;v8&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;::&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;String&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;::&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;NewFromUtf8&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;isolate&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;s&quot;&gt;&quot;Wrong arguments type!&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)));&lt;/span&gt;
+  &lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;
+
+  &lt;span class=&quot;kt&quot;&gt;int&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;value&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;climbStairs&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;args&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;[&lt;/span&gt;&lt;span class=&quot;mi&quot;&gt;0&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;]&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;-&amp;gt;&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;NumberValue&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;());&lt;/span&gt;
+  &lt;span class=&quot;n&quot;&gt;v8&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;::&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;Local&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;&amp;lt;&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;v8&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;::&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;Number&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;&amp;gt;&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;num&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;v8&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;::&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;Number&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;::&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;New&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;isolate&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;value&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;);&lt;/span&gt;
+
+  &lt;span class=&quot;n&quot;&gt;args&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;GetReturnValue&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;().&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;Set&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;num&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;);&lt;/span&gt;
+&lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;
+
+&lt;span class=&quot;c1&quot;&gt;// init is entry point.
+&lt;/span&gt;&lt;span class=&quot;kt&quot;&gt;void&lt;/span&gt; &lt;span class=&quot;nf&quot;&gt;init&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;v8&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;::&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;Local&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;&amp;lt;&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;v8&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;::&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;Object&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;&amp;gt;&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;exports&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;
+  &lt;span class=&quot;n&quot;&gt;NODE_SET_METHOD&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;exports&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;s&quot;&gt;&quot;jumpTo&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;JumpTo&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;);&lt;/span&gt;
+&lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;
+
+&lt;span class=&quot;n&quot;&gt;NODE_MODULE&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;frog_jump&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;init&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+
+&lt;p&gt;对这段代码的解释：&lt;/p&gt;
+&lt;ul&gt;
+  &lt;li&gt;#include “node.h” 是c++里面引入头文件的方式，具体源码：&lt;a href=&quot;https://github.com/nodejs/node/blob/master/src/node.h&quot;&gt;node.h&lt;/a&gt;，C++链接时会加载这个头文件。头文件里面引入了v8命名空间，我们可以通过&lt;code class=&quot;highlighter-rouge&quot;&gt;v8::&lt;/code&gt;标志来访问v8的接口。访问所有v8的类型，都需要使用v8::标志&lt;/li&gt;
+  &lt;li&gt;通过args对象来访问Node.js传递过来的参数，通过args也可以获取调用相关信息。&lt;/li&gt;
+  &lt;li&gt;通过v8::Isolate*可以获取函数作用域，可以像JS里面一样进行变量赋值，而不用担心垃圾回收问题，垃圾回收器会自动进行。&lt;/li&gt;
+  &lt;li&gt;args.GetReturnValue()可以对函数返回的结果进行设置。&lt;/li&gt;
+  &lt;li&gt;任何原生Node.js模块都需要调用NODE_MODULE，NODE_MODULE是一个宏，它会进行模块注册操作。&lt;/li&gt;
+  &lt;li&gt;C++ 有丰富的内置类型来保存数字或者字符串，但是JS只能识别v8::里面定义的类型。因此，将c++的变量赋值给JS时，需要转换成可以被JS识别的类型，也即是v8::定义的类型。比如v8::String、v8::Object。&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;h3 id=&quot;编译原生的nodejs模块&quot;&gt;编译原生的Node.js模块&lt;/h3&gt;
+&lt;p&gt;一旦源代码编写完成，需要将它编译成二进制的&lt;code class=&quot;highlighter-rouge&quot;&gt;addon.node&lt;/code&gt;文件，之后才能被Node.js require。为了完成编译操作，需要在项目的根目录创建binding.gyp文件，里面定义了Build的配置。binding.gyp的内容是一个JSON。&lt;/p&gt;
+
+&lt;div class=&quot;language-shell highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;o&quot;&gt;{&lt;/span&gt;
+  &lt;span class=&quot;s2&quot;&gt;&quot;targets&quot;&lt;/span&gt;: &lt;span class=&quot;o&quot;&gt;[&lt;/span&gt;
+    &lt;span class=&quot;o&quot;&gt;{&lt;/span&gt;
+      &lt;span class=&quot;s2&quot;&gt;&quot;target_name&quot;&lt;/span&gt;: &lt;span class=&quot;s2&quot;&gt;&quot;frog_jump&quot;&lt;/span&gt;,
+      &lt;span class=&quot;s2&quot;&gt;&quot;sources&quot;&lt;/span&gt;: &lt;span class=&quot;o&quot;&gt;[&lt;/span&gt; &lt;span class=&quot;s2&quot;&gt;&quot;frog_jump.cc&quot;&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;]&lt;/span&gt;
+    &lt;span class=&quot;o&quot;&gt;}&lt;/span&gt;
+  &lt;span class=&quot;o&quot;&gt;]&lt;/span&gt;
+&lt;span class=&quot;o&quot;&gt;}&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+
+&lt;p&gt;编译环境配置：&lt;/p&gt;
+&lt;ul&gt;
+  &lt;li&gt;windows: 以管理员的身份运行npm install –global –production windows-build-tools，这个会安装所有编译依赖的工具。&lt;/li&gt;
+  &lt;li&gt;linux: 安装python &lt;a href=&quot;https://www.python.org/download/releases/2.7/&quot;&gt;v2.7&lt;/a&gt;、&lt;a href=&quot;https://www.gnu.org/software/make/&quot;&gt;make&lt;/a&gt;和&lt;a href=&quot;https://gcc.gnu.org/&quot;&gt;GCC&lt;/a&gt;&lt;/li&gt;
+  &lt;li&gt;osx: 安装xcode&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;虽然npm内置了一个node-gyp版本，但是这个版本没有开放给开发者进行调用。npm install的时候会调用它来进行编译和安装工作。因此，开发者想要调用node-gyp必须自己安装一个全局的node-gyp版本。&lt;/p&gt;
+
+&lt;div class=&quot;language-sh highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;gp&quot;&gt;$ &lt;/span&gt;npm install node-gyp -g
+&lt;span class=&quot;gp&quot;&gt;$ &lt;/span&gt;node-gyp configure
+&lt;span class=&quot;gp&quot;&gt;$ &lt;/span&gt;node-gyp build
+&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+&lt;p&gt;运行node-gyp configure命令会生成一个跨平台的build文件，unix环境会生成Makefile，windows环境会在build目录里面生成vcxproj。
+运行node-gyp build命令会生成可被Node.js调动的addon.node二进制文件。&lt;/p&gt;
+
+&lt;h3 id=&quot;nodejs中调用原生模块&quot;&gt;Node.js中调用原生模块&lt;/h3&gt;
+&lt;div class=&quot;language-javascript highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;kr&quot;&gt;const&lt;/span&gt; &lt;span class=&quot;nx&quot;&gt;frogJump&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;nx&quot;&gt;require&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s1&quot;&gt;'./build/Release/frog_jump'&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;);&lt;/span&gt;
+
+&lt;span class=&quot;nx&quot;&gt;frogJump&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;nx&quot;&gt;jumpTo&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;mi&quot;&gt;20&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;);&lt;/span&gt;  &lt;span class=&quot;c1&quot;&gt;//青蛙跳到第20个台阶的所有方法&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+&lt;p&gt;项目源代码：&lt;a href=&quot;https://github.com/cpselvis/frog-jump&quot;&gt;frog-jump&lt;/a&gt;&lt;/p&gt;
+
+&lt;h3 id=&quot;后续&quot;&gt;后续&lt;/h3&gt;
+&lt;p&gt;&lt;a href=&quot;https://github.com/nodejs/nan&quot;&gt;nan&lt;/a&gt;，即Native Abstractions for Node.js。它基于Node.js API接口，兼容所有Node版本，目前的最佳实践是基于nan来扩展原生模块，而不是直接使用Node.js API。
+&lt;a href=&quot;https://nodejs.org/api/n-api.html&quot;&gt;N-API&lt;/a&gt;，Node官方推出的用来编写原生Node扩展模块，是V8和nan的替代，目前处于实验阶段。&lt;/p&gt;
+</description>
+        <pubDate>Wed, 31 May 2017 21:13:24 +0800</pubDate>
+        <link>http://localhost:4000/2017/05/%E7%BC%96%E5%86%99%E5%8E%9F%E7%94%9F%E7%9A%84Node.js%E6%A8%A1%E5%9D%97/</link>
+        <guid isPermaLink="true">http://localhost:4000/2017/05/%E7%BC%96%E5%86%99%E5%8E%9F%E7%94%9F%E7%9A%84Node.js%E6%A8%A1%E5%9D%97/</guid>
+        
+        
+      </item>
+    
+      <item>
+        <title>使用Yeoman generator来规范工程的初始化</title>
+        <description>&lt;p&gt;&lt;img src=&quot;http://7tszky.com1.z0.glb.clouddn.com/FtM6zxr8gWVy1LQKD1e3lxkBAumx&quot; alt=&quot;&quot; /&gt;&lt;/p&gt;
+
+&lt;h3 id=&quot;前言&quot;&gt;前言&lt;/h3&gt;
+&lt;blockquote&gt;
+  &lt;p&gt;随着开发团队不断发展壮大，在人员增加的同时也带来了协作成本的增加；业务项目越来越多，类型也各不相同。常见的类型有基础组件、业务组件、基于React的业务项目、基于Vue的业务项目等等。如果想要对每个项目进行一些规范上的约束比如Git提交规范、Javascript规范简直难于登天。所有的这些，只是因为还欠缺一个好用的工程化工具，在项目创建的初期自动的将这些目录结构和文件生成、并且集成工程常见的规范来进行约束。&lt;/p&gt;
+&lt;/blockquote&gt;
+
+&lt;p&gt;本文分为两部分，首先会谈谈目前团队的痛点以及基于yeoman generator的设计思路；然后会详细介绍如何实现定制的generator，过程中遇到的问题和解决办法。&lt;/p&gt;
+
+&lt;h3 id=&quot;痛点一工程创建不智能&quot;&gt;痛点一：工程创建不智能&lt;/h3&gt;
+&lt;ul&gt;
+  &lt;li&gt;代码目录文件手工拷贝&lt;/li&gt;
+  &lt;li&gt;不同场景的工程对目录结构的要求不尽相同&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;h3 id=&quot;痛点二规范约束难以统一集成&quot;&gt;痛点二：规范约束难以统一集成&lt;/h3&gt;
+&lt;ul&gt;
+  &lt;li&gt;难以在新的工程项目中集成新的规范，需要手动加hook&lt;/li&gt;
+  &lt;li&gt;缺少增量机制对旧项目集成&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;h3 id=&quot;基于yeoman-generator的设计思路&quot;&gt;基于Yeoman generator的设计思路&lt;/h3&gt;
+&lt;p&gt;我们需要给每个工程类型的项目创建一个generator。按照目前前端技术栈的发展情况来看，一个团队一般会有3~5个generator。把这些generator看成一个个的插件，通过工具上层的CLI命令来暴露给开发者使用。&lt;/p&gt;
+
+&lt;p&gt;在generator之下，需要开发一系列服务和集成规范。包括和Git仓库打通，也就是通过脚手架初始化目录时，先对开发者鉴权。之后根据开发者输入的项目名称在远程Git仓库里面创建仓库并且授予开发者权限。后期功能完善之后，可以做一些锦上添花的工作，比如进行数据统计，分析各个业务仓库使用的generator版本信息，是否集成了最新的feature等等。&lt;/p&gt;
+
+&lt;p&gt;整体系统架构如下：&lt;/p&gt;
+
+&lt;p&gt;&lt;img src=&quot;http://7tszky.com1.z0.glb.clouddn.com/FiwG7VvpYL3Tleaii9Q9dowGNJXv&quot; alt=&quot;&quot; /&gt;&lt;/p&gt;
+
+&lt;p&gt;下面我准备开发一个适用于Now直播活动类搭建的脚手架了，名字是generator-now-activity&lt;/p&gt;
+
+&lt;h3 id=&quot;自定义generator的目录结构&quot;&gt;自定义generator的目录结构&lt;/h3&gt;
+&lt;div class=&quot;language-shell highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;├───package.json
+└───generators/
+   ├───app/
+    |  ├───templates/
+    |   |  ├─── src/
+    |   |   |─── _cilintrc.js
+    |   |   |─── _eslintrc.js
+    |   |   |─── _fis-conf.js
+    |   |   |─── _package.json
+    |   |   |─── _project.js
+    |   |   |─── _README.md
+    |   |   |─── editorconfig
+    |   |   |─── gitignore
+    |   |  └─── vcmrc
+   │ └───index.js
+   └───utils.js   
+&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+
+&lt;h3 id=&quot;扩展generator&quot;&gt;扩展generator&lt;/h3&gt;
+&lt;p&gt;在generator的外层index.js文件里，通过继承yeoman-generator来扩展我们自己的generator，然后模块暴露给外部。&lt;/p&gt;
+&lt;div class=&quot;language-javascript highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;kr&quot;&gt;const&lt;/span&gt; &lt;span class=&quot;nx&quot;&gt;Generator&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;nx&quot;&gt;require&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s1&quot;&gt;'yeoman-generator'&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;);&lt;/span&gt;
+
+&lt;span class=&quot;nx&quot;&gt;module&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;nx&quot;&gt;exports&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;kr&quot;&gt;class&lt;/span&gt; &lt;span class=&quot;kr&quot;&gt;extends&lt;/span&gt; &lt;span class=&quot;nx&quot;&gt;Generator&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;
+
+&lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;
+
+&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+
+&lt;h3 id=&quot;yeoman的运行周期&quot;&gt;Yeoman的运行周期&lt;/h3&gt;
+&lt;p&gt;一个 Yeoman Generator 被创建后（构造函数必然是最先被调用的），会依次调用它原型上的方法，且每一个方法中的 this 都被绑定为 Generator 实例本身，调用的顺序如下：&lt;/p&gt;
+
+&lt;ul&gt;
+  &lt;li&gt;initializing - 初始化一些状态之类的，通常是和用户输入的 options 或者 arguments 打交道，这个后面说。&lt;/li&gt;
+  &lt;li&gt;prompting - 和用户交互的时候（命令行问答之类的）调用。&lt;/li&gt;
+  &lt;li&gt;configuring - 保存配置文件（如 .babelrc 等）。&lt;/li&gt;
+  &lt;li&gt;default - 其他方法都会在这里按顺序统一调用。&lt;/li&gt;
+  &lt;li&gt;writing - 在这里写一些模板文件。&lt;/li&gt;
+  &lt;li&gt;conflicts - 处理文件冲突，比如当前目录下已经有了同名文件。&lt;/li&gt;
+  &lt;li&gt;install - 安装依赖&lt;/li&gt;
+  &lt;li&gt;end - 结束部分&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;h3 id=&quot;与用户交互&quot;&gt;与用户交互&lt;/h3&gt;
+&lt;p&gt;Yeoman提供了API来让generator和用户进行交互，直接通过this.prompts函数，它的内部实现是使用了Inquire.js。&lt;/p&gt;
+&lt;div class=&quot;language-javascript highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;  &lt;span class=&quot;cm&quot;&gt;/**
+   * 提示用户输入配置项
+   * @returns {Promise.&amp;lt;TResult&amp;gt;}
+   */&lt;/span&gt;
+  &lt;span class=&quot;nx&quot;&gt;prompting&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;()&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;
+
+    &lt;span class=&quot;k&quot;&gt;return&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;this&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;nx&quot;&gt;prompt&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;([{&lt;/span&gt;
+      &lt;span class=&quot;na&quot;&gt;type&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;s1&quot;&gt;'input'&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt;
+      &lt;span class=&quot;na&quot;&gt;name&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;s1&quot;&gt;'projectName'&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt;
+      &lt;span class=&quot;na&quot;&gt;message&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;s1&quot;&gt;'请输入活动的名称 (now-activity):'&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt;
+      &lt;span class=&quot;na&quot;&gt;default&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;s1&quot;&gt;'now-activity-default'&lt;/span&gt;
+    &lt;span class=&quot;p&quot;&gt;}]).&lt;/span&gt;&lt;span class=&quot;nx&quot;&gt;then&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;((&lt;/span&gt;&lt;span class=&quot;nx&quot;&gt;answers&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&amp;gt;&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;
+      &lt;span class=&quot;k&quot;&gt;this&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;nx&quot;&gt;log&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s1&quot;&gt;'活动名称'&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;nx&quot;&gt;answers&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;nx&quot;&gt;projectName&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;);&lt;/span&gt;
+      &lt;span class=&quot;k&quot;&gt;this&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;nx&quot;&gt;props&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;nx&quot;&gt;answers&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;;&lt;/span&gt;
+    &lt;span class=&quot;p&quot;&gt;});&lt;/span&gt;
+
+  &lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+
+&lt;h3 id=&quot;模板拷贝策略&quot;&gt;模板拷贝策略&lt;/h3&gt;
+&lt;p&gt;对于工程src目录部分直接通过深度优先算法拷贝写入。对于工程的规范类、配置的文件需要单独写入，这一类可能需要接受用户的输入，同时需要集中进行维护，因此需要和src的拷贝方式进行区分。&lt;/p&gt;
+
+&lt;p&gt;src深度优先拷贝代码如下：&lt;/p&gt;
+&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;const fs = require('fs');
+const path = require('path');
+
+function read(root, filter, files, prefix) {
+  prefix = prefix || '';
+  files = files || [];
+  filter = filter || noDotFiles;
+
+  const dir = path.join(root, prefix);
+  if (!fs.existsSync(dir)) return files;
+  if (fs.statSync(dir).isDirectory())
+    fs.readdirSync(dir)
+      .filter(filter)
+      .forEach(function (name) {
+        read(root, filter, files, path.join(prefix, name));
+      });
+  else
+    files.push(prefix);
+
+  return files
+}
+
+function noDotFiles(x) {
+  return x[0] !== '.';
+}
+
+module.exports = {
+  read
+};
+&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+
+&lt;p&gt;在外层通过Yeoman提供的API this.fs.copy()方法来进行文件拷贝&lt;/p&gt;
+&lt;div class=&quot;language-javascript highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;    &lt;span class=&quot;cm&quot;&gt;/**
+     * 源代码模板
+     */&lt;/span&gt;
+    &lt;span class=&quot;kr&quot;&gt;const&lt;/span&gt; &lt;span class=&quot;nx&quot;&gt;sourceCode&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;()&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&amp;gt;&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;
+      &lt;span class=&quot;kr&quot;&gt;const&lt;/span&gt; &lt;span class=&quot;nx&quot;&gt;sourceDir&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;nx&quot;&gt;path&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;nx&quot;&gt;join&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;k&quot;&gt;this&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;nx&quot;&gt;templatePath&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(),&lt;/span&gt; &lt;span class=&quot;s1&quot;&gt;'./src/'&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;);&lt;/span&gt;
+      &lt;span class=&quot;kr&quot;&gt;const&lt;/span&gt; &lt;span class=&quot;nx&quot;&gt;filePaths&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;nx&quot;&gt;utils&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;nx&quot;&gt;read&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;nx&quot;&gt;sourceDir&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;);&lt;/span&gt;
+      &lt;span class=&quot;nx&quot;&gt;_&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;nx&quot;&gt;each&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;nx&quot;&gt;filePaths&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;nx&quot;&gt;filePath&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&amp;gt;&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;
+        &lt;span class=&quot;k&quot;&gt;this&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;nx&quot;&gt;fs&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;nx&quot;&gt;copy&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;
+          &lt;span class=&quot;k&quot;&gt;this&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;nx&quot;&gt;templatePath&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s1&quot;&gt;'./src/'&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;+&lt;/span&gt; &lt;span class=&quot;nx&quot;&gt;filePath&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;),&lt;/span&gt;
+          &lt;span class=&quot;k&quot;&gt;this&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;nx&quot;&gt;destinationPath&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s1&quot;&gt;'./src/'&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;+&lt;/span&gt; &lt;span class=&quot;nx&quot;&gt;filePath&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+        &lt;span class=&quot;p&quot;&gt;);&lt;/span&gt;
+      &lt;span class=&quot;p&quot;&gt;});&lt;/span&gt;
+    &lt;span class=&quot;p&quot;&gt;};&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+
+&lt;p&gt;开发完generator之后，就可以通过yo now-activity来进行使用了。&lt;/p&gt;
+
+&lt;h3 id=&quot;generator和其它工具如cli集成&quot;&gt;generator和其它工具如CLI集成&lt;/h3&gt;
+&lt;p&gt;前面提到的yo now-activity的方式使用可能存在一些问题，因为这种方式要求代码必须上传到github上。对于公司内部的工具，不走正常的开源流程显然是不被允许的。那么，有没有什么方法，不添加generator到Yeoman的generator列表里就能够使用呢？&lt;/p&gt;
+
+&lt;p&gt;幸运的是，Yeoman提供了yeoman-environment来帮助我们在其它工具中集成编写好的generator，yo其实也只是yeoman-environment暴露到上层的一个命令而已。&lt;/p&gt;
+
+&lt;div class=&quot;language-javascript highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;kr&quot;&gt;const&lt;/span&gt; &lt;span class=&quot;nx&quot;&gt;yeoman&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;nx&quot;&gt;require&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s1&quot;&gt;'yeoman-environment'&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;);&lt;/span&gt;
+&lt;span class=&quot;kr&quot;&gt;const&lt;/span&gt; &lt;span class=&quot;nx&quot;&gt;yeomanEnv&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;nx&quot;&gt;yeoman&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;nx&quot;&gt;createEnv&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;();&lt;/span&gt;
+
+&lt;span class=&quot;cm&quot;&gt;/**
+ * Lookup方法会在本地查找已经安装过的generator
+ */&lt;/span&gt;
+&lt;span class=&quot;nx&quot;&gt;yeomanEnv&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;nx&quot;&gt;lookup&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(()&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&amp;gt;&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;
+    &lt;span class=&quot;nx&quot;&gt;yeomanEnv&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;nx&quot;&gt;run&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s1&quot;&gt;'@tencent/now-activity'&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;&lt;span class=&quot;s1&quot;&gt;'skip-install'&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;kc&quot;&gt;true&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;},&lt;/span&gt; &lt;span class=&quot;nx&quot;&gt;err&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&amp;gt;&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;
+        &lt;span class=&quot;nx&quot;&gt;console&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;nx&quot;&gt;log&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s1&quot;&gt;'done'&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;);&lt;/span&gt;
+    &lt;span class=&quot;p&quot;&gt;});&lt;/span&gt;
+&lt;span class=&quot;p&quot;&gt;});&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+
+&lt;h3 id=&quot;一些细节&quot;&gt;一些细节&lt;/h3&gt;
+&lt;ul&gt;
+  &lt;li&gt;为了方便本地调试看效果，在generator根目录下运行 tnpm  link&lt;/li&gt;
+  &lt;li&gt;使用Yeoman提供的API this.log来打印信息，而不要使用console.log&lt;/li&gt;
+  &lt;li&gt;如果是内部工具，运行的时候命令为：yo @tencent/now-activity&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;h3 id=&quot;最后&quot;&gt;最后&lt;/h3&gt;
+&lt;p&gt;安装示例（限内部）&lt;/p&gt;
+&lt;div class=&quot;language-shell highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;gp&quot;&gt;$ &lt;/span&gt;tnpm install -g yo generator-generator @tencent/feflow-cli
+&lt;span class=&quot;gp&quot;&gt;$ &lt;/span&gt;feflow init
+&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+
+&lt;h3 id=&quot;参考资料&quot;&gt;参考资料&lt;/h3&gt;
+&lt;ul&gt;
+  &lt;li&gt;&lt;a href=&quot;http://yeoman.io/generator/Base.html&quot;&gt;Yeoman Generator API&lt;/a&gt;&lt;/li&gt;
+  &lt;li&gt;&lt;a href=&quot;http://yeoman.io/authoring/index.html&quot;&gt;WRITING YOUR OWN YEOMAN GENERATOR&lt;/a&gt;&lt;/li&gt;
+  &lt;li&gt;&lt;a href=&quot;https://github.com/jhipster/generator-jhipster&quot;&gt;Spring Boot + Angular projects&lt;/a&gt;&lt;/li&gt;
+&lt;/ul&gt;
+</description>
+        <pubDate>Mon, 27 Mar 2017 22:25:24 +0800</pubDate>
+        <link>http://localhost:4000/2017/03/%E4%BD%BF%E7%94%A8Yeoman-generator%E6%9D%A5%E8%A7%84%E8%8C%83%E5%B7%A5%E7%A8%8B%E7%9A%84%E5%88%9D%E5%A7%8B%E5%8C%96/</link>
+        <guid isPermaLink="true">http://localhost:4000/2017/03/%E4%BD%BF%E7%94%A8Yeoman-generator%E6%9D%A5%E8%A7%84%E8%8C%83%E5%B7%A5%E7%A8%8B%E7%9A%84%E5%88%9D%E5%A7%8B%E5%8C%96/</guid>
+        
+        
+      </item>
+    
+      <item>
+        <title>Git commit message和工作流规范</title>
+        <description>&lt;h3 id=&quot;目的&quot;&gt;目的&lt;/h3&gt;
+&lt;ul&gt;
+  &lt;li&gt;统一团队Git commit日志标准，便于后续代码review，版本发布以及日志自动化生成等等。&lt;/li&gt;
+  &lt;li&gt;统一团队的Git工作流，包括分支使用、tag规范、issue等&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;h3 id=&quot;git-commit日志参考案例&quot;&gt;Git commit日志参考案例&lt;/h3&gt;
+&lt;ul&gt;
+  &lt;li&gt;&lt;a href=&quot;https://github.com/angular/angular&quot;&gt;angular&lt;/a&gt;&lt;/li&gt;
+  &lt;li&gt;&lt;a href=&quot;https://github.com/cpselvis/commit-message-test-project&quot;&gt;commit-message-test-project&lt;/a&gt;&lt;/li&gt;
+  &lt;li&gt;&lt;a href=&quot;https://github.com/istanbuljs/babel-plugin-istanbul&quot;&gt;babel-plugin-istanbul&lt;/a&gt;&lt;/li&gt;
+  &lt;li&gt;&lt;a href=&quot;https://github.com/conventional-changelog/conventional-changelog&quot;&gt;conventional-changelog&lt;/a&gt;&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;h3 id=&quot;总体方案&quot;&gt;总体方案&lt;/h3&gt;
+
+&lt;p&gt;&lt;img src=&quot;http://images2015.cnblogs.com/blog/1030776/201703/1030776-20170304152156235-891182085.png&quot; alt=&quot;&quot; /&gt;&lt;/p&gt;
+
+&lt;h3 id=&quot;git-commit日志基本规范&quot;&gt;Git commit日志基本规范&lt;/h3&gt;
+&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&amp;lt;type&amp;gt;(&amp;lt;scope&amp;gt;): &amp;lt;subject&amp;gt;
+&amp;lt;BLANK LINE&amp;gt;
+&amp;lt;body&amp;gt;
+&amp;lt;BLANK LINE&amp;gt;
+&amp;lt;footer&amp;gt;
+&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+
+&lt;p&gt;对格式的说明如下：&lt;/p&gt;
+
+&lt;ul&gt;
+  &lt;li&gt;type代表某次提交的类型，比如是修复一个bug还是增加一个新的feature。所有的type类型如下：&lt;/li&gt;
+  &lt;li&gt;feat： 新增feature&lt;/li&gt;
+  &lt;li&gt;fix: 修复bug&lt;/li&gt;
+  &lt;li&gt;docs: 仅仅修改了文档，比如README, CHANGELOG, CONTRIBUTE等等&lt;/li&gt;
+  &lt;li&gt;style: 仅仅修改了空格、格式缩进、都好等等，不改变代码逻辑&lt;/li&gt;
+  &lt;li&gt;refactor: 代码重构，没有加新功能或者修复bug&lt;/li&gt;
+  &lt;li&gt;perf: 优化相关，比如提升性能、体验&lt;/li&gt;
+  &lt;li&gt;test: 测试用例，包括单元测试、集成测试等&lt;/li&gt;
+  &lt;li&gt;chore: 改变构建流程、或者增加依赖库、工具等&lt;/li&gt;
+  &lt;li&gt;revert: 回滚到上一个版本&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;格式要求：&lt;/p&gt;
+&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;# 标题行：50个字符以内，描述主要变更内容
+#
+# 主体内容：更详细的说明文本，建议72个字符以内。 需要描述的信息包括:
+#
+# * 为什么这个变更是必须的? 它可能是用来修复一个bug，增加一个feature，提升性能、可靠性、稳定性等等
+# * 他如何解决这个问题? 具体描述解决问题的步骤
+# * 是否存在副作用、风险?
+#
+# 尾部：如果需要的化可以添加一个链接到issue地址或者其它文档，或者关闭某个issue。
+&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+
+&lt;h3 id=&quot;git分支与版本发布规范&quot;&gt;Git分支与版本发布规范&lt;/h3&gt;
+&lt;ul&gt;
+  &lt;li&gt;基本原则：master为保护分支，不直接在master上进行代码修改和提交。&lt;/li&gt;
+  &lt;li&gt;开发日常需求或者项目时，从master分支上checkout一个feature分支进行开发或者bugfix分支进行bug修复，功能测试完毕并且项目发布上线后，&lt;code class=&quot;highlighter-rouge&quot;&gt;将feature分支合并到主干master，并且打Tag发布，最后删除开发分支&lt;/code&gt;。分支命名规范：
+    &lt;ul&gt;
+      &lt;li&gt;分支版本命名规则：分支类型 _ 分支发布时间 _ 分支功能。比如：feature_20170401_fairy_flower&lt;/li&gt;
+      &lt;li&gt;分支类型包括：feature、 bugfix、refactor三种类型，即新功能开发、bug修复和代码重构&lt;/li&gt;
+      &lt;li&gt;时间使用年月日进行命名，不足2位补0&lt;/li&gt;
+      &lt;li&gt;分支功能命名使用snake case命名法，即下划线命名。&lt;/li&gt;
+    &lt;/ul&gt;
+  &lt;/li&gt;
+  &lt;li&gt;Tag包括3位版本，前缀使用v。比如v1.2.31。Tag命名规范：
+    &lt;ul&gt;
+      &lt;li&gt;新功能开发使用第2位版本号，bug修复使用第3位版本号&lt;/li&gt;
+      &lt;li&gt;核心基础库或者Node中间价可以在大版本发布请使用灰度版本号，在版本后面加上后缀，用中划线分隔。alpha或者belta后面加上次数，即第几次alpha：
+        &lt;ul&gt;
+          &lt;li&gt;v2.0.0-alpha-1&lt;/li&gt;
+          &lt;li&gt;v2.0.0-belta-1&lt;/li&gt;
+        &lt;/ul&gt;
+      &lt;/li&gt;
+    &lt;/ul&gt;
+  &lt;/li&gt;
+  &lt;li&gt;版本正式发布前需要生成changelog文档，然后再发布上线。&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;h3 id=&quot;如何接入&quot;&gt;如何接入？&lt;/h3&gt;
+&lt;p&gt;接入参考&lt;a href=&quot;https://github.com/cpselvis/commit-message-test-project&quot;&gt;commit-message-test-project&lt;/a&gt;项目。具体步骤如下：&lt;/p&gt;
+
+&lt;ul&gt;
+  &lt;li&gt;第一步：在工程跟目录下的package.json文件加入如下代码所示的scripts和dependencies内容，版本号为3位版本号。&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;div class=&quot;language-sh highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;  &lt;span class=&quot;o&quot;&gt;{&lt;/span&gt;
+    &lt;span class=&quot;s2&quot;&gt;&quot;name&quot;&lt;/span&gt;: &lt;span class=&quot;s2&quot;&gt;&quot;application-name&quot;&lt;/span&gt;,
+    &lt;span class=&quot;s2&quot;&gt;&quot;version&quot;&lt;/span&gt;: &lt;span class=&quot;s2&quot;&gt;&quot;0.1.0&quot;&lt;/span&gt;,
+    &lt;span class=&quot;s2&quot;&gt;&quot;scripts&quot;&lt;/span&gt;: &lt;span class=&quot;o&quot;&gt;{&lt;/span&gt;
+      &lt;span class=&quot;s2&quot;&gt;&quot;commitmsg&quot;&lt;/span&gt;: &lt;span class=&quot;s2&quot;&gt;&quot;validate-commit-msg&quot;&lt;/span&gt;,
+      &lt;span class=&quot;s2&quot;&gt;&quot;commit&quot;&lt;/span&gt;: &lt;span class=&quot;s2&quot;&gt;&quot;git-cz &quot;&lt;/span&gt;,
+      &lt;span class=&quot;s2&quot;&gt;&quot;changelog&quot;&lt;/span&gt;: &lt;span class=&quot;s2&quot;&gt;&quot;conventional-changelog -p angular -i CHANGELOG.md -s -r 0&quot;&lt;/span&gt;
+    &lt;span class=&quot;o&quot;&gt;}&lt;/span&gt;,
+    &lt;span class=&quot;s2&quot;&gt;&quot;devDependencies&quot;&lt;/span&gt;: &lt;span class=&quot;o&quot;&gt;{&lt;/span&gt;
+      &lt;span class=&quot;s2&quot;&gt;&quot;commitizen&quot;&lt;/span&gt;: &lt;span class=&quot;s2&quot;&gt;&quot;^2.3.0&quot;&lt;/span&gt;,
+      &lt;span class=&quot;s2&quot;&gt;&quot;validate-commit-msg&quot;&lt;/span&gt;: &lt;span class=&quot;s2&quot;&gt;&quot;^2.11.1&quot;&lt;/span&gt;,
+      &lt;span class=&quot;s2&quot;&gt;&quot;conventional-changelog-cli&quot;&lt;/span&gt;: &lt;span class=&quot;s2&quot;&gt;&quot;^1.2.0&quot;&lt;/span&gt;,
+      &lt;span class=&quot;s2&quot;&gt;&quot;husky&quot;&lt;/span&gt;: &lt;span class=&quot;s2&quot;&gt;&quot;^0.13.1&quot;&lt;/span&gt;
+    &lt;span class=&quot;o&quot;&gt;}&lt;/span&gt;
+  &lt;span class=&quot;o&quot;&gt;}&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+
+&lt;ul&gt;
+  &lt;li&gt;第二步：在工程根目录新建.vcmrc文件，并且文件内容为&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;div class=&quot;language-sh highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;o&quot;&gt;{&lt;/span&gt;
+  &lt;span class=&quot;s2&quot;&gt;&quot;helpMessage&quot;&lt;/span&gt;: &lt;span class=&quot;s2&quot;&gt;&quot;&lt;/span&gt;&lt;span class=&quot;se&quot;&gt;\n&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;Please fix your commit message (and consider using https://www.npmjs.com/package/commitizen)&lt;/span&gt;&lt;span class=&quot;se&quot;&gt;\n&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;&lt;/span&gt;,
+  &lt;span class=&quot;s2&quot;&gt;&quot;types&quot;&lt;/span&gt;: &lt;span class=&quot;o&quot;&gt;[&lt;/span&gt;
+    &lt;span class=&quot;s2&quot;&gt;&quot;feat&quot;&lt;/span&gt;,
+    &lt;span class=&quot;s2&quot;&gt;&quot;fix&quot;&lt;/span&gt;,
+    &lt;span class=&quot;s2&quot;&gt;&quot;docs&quot;&lt;/span&gt;,
+    &lt;span class=&quot;s2&quot;&gt;&quot;style&quot;&lt;/span&gt;,
+    &lt;span class=&quot;s2&quot;&gt;&quot;refactor&quot;&lt;/span&gt;,
+    &lt;span class=&quot;s2&quot;&gt;&quot;perf&quot;&lt;/span&gt;,
+    &lt;span class=&quot;s2&quot;&gt;&quot;test&quot;&lt;/span&gt;,
+    &lt;span class=&quot;s2&quot;&gt;&quot;chore&quot;&lt;/span&gt;,
+    &lt;span class=&quot;s2&quot;&gt;&quot;revert&quot;&lt;/span&gt;
+  &lt;span class=&quot;o&quot;&gt;]&lt;/span&gt;,
+  &lt;span class=&quot;s2&quot;&gt;&quot;warnOnFail&quot;&lt;/span&gt;: &lt;span class=&quot;nb&quot;&gt;false&lt;/span&gt;,
+  &lt;span class=&quot;s2&quot;&gt;&quot;autoFix&quot;&lt;/span&gt;: &lt;span class=&quot;nb&quot;&gt;false&lt;/span&gt;
+&lt;span class=&quot;o&quot;&gt;}&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+&lt;h3 id=&quot;接入后的git-commit操作流程&quot;&gt;接入后的Git commit操作流程&lt;/h3&gt;
+&lt;ul&gt;
+  &lt;li&gt;
+    &lt;p&gt;第一步：创建一个feature分支或者bugfix分支
+&lt;code class=&quot;highlighter-rouge&quot;&gt;sh
+$ git checkout -b feature_infinite_load    # 切换到一个feature分支或者bug fix分支
+&lt;/code&gt; sh&lt;/p&gt;
+  &lt;/li&gt;
+  &lt;li&gt;
+    &lt;p&gt;第二步：将代码提交到本地Git仓库，并填写符合要求的Commit message格式&lt;/p&gt;
+    &lt;div class=&quot;language-sh highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;gp&quot;&gt;$ &lt;/span&gt;git add .                                
+&lt;span class=&quot;gp&quot;&gt;$ &lt;/span&gt;git commit                               &lt;span class=&quot;c&quot;&gt;# 此处不要加任何参数，比如-m&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;
+    &lt;/div&gt;
+
+    &lt;p&gt;如下图所示：&lt;/p&gt;
+  &lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;&lt;img src=&quot;http://images2015.cnblogs.com/blog/1030776/201703/1030776-20170304153136563-2126734467.png&quot; alt=&quot;&quot; /&gt;&lt;/p&gt;
+
+&lt;ul&gt;
+  &lt;li&gt;第三步：将代码同步到远程Git仓库
+    &lt;div class=&quot;language-sh highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;gp&quot;&gt;$ &lt;/span&gt;git push origin feature_infinite_load    &lt;span class=&quot;c&quot;&gt;# 将修改发布到远程仓库&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;
+    &lt;/div&gt;
+  &lt;/li&gt;
+  &lt;li&gt;第四步：自动生成changelog，并打Tag发布
+    &lt;div class=&quot;language-sh highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;gp&quot;&gt;$ &lt;/span&gt;tnpm run changelog                    &lt;span class=&quot;c&quot;&gt;# 使用npm script中的changlog命令直接从git元数据生成日志。&lt;/span&gt;
+&lt;span class=&quot;gp&quot;&gt;$ &lt;/span&gt;git tag v0.1.0
+&lt;span class=&quot;gp&quot;&gt;$ &lt;/span&gt;git push origin v0.1.0
+&lt;/code&gt;&lt;/pre&gt;
+    &lt;/div&gt;
+  &lt;/li&gt;
+&lt;/ul&gt;
+</description>
+        <pubDate>Sat, 04 Mar 2017 14:33:24 +0800</pubDate>
+        <link>http://localhost:4000/2017/03/Git-commit-message%E5%92%8C%E5%B7%A5%E4%BD%9C%E6%B5%81%E8%A7%84%E8%8C%83/</link>
+        <guid isPermaLink="true">http://localhost:4000/2017/03/Git-commit-message%E5%92%8C%E5%B7%A5%E4%BD%9C%E6%B5%81%E8%A7%84%E8%8C%83/</guid>
+        
+        
+      </item>
+    
+      <item>
+        <title>如何写好 Git commit messages</title>
+        <description>&lt;blockquote&gt;
+  &lt;p&gt;导语：任何软件项目都是一个协作项目，它至少需要2个开发人员参与，当原始的开发人员将项目开发几个星期或者几个月之后，项目步入正规。不过他们或者后续的开发人员仍然需要经常提交一些代码去修复bug或者实现新的feature。我们经常有这种感受：当一个项目时间过了很久之后，我们对于项目里面的文件和函数功能渐渐淡忘，重新去阅读熟悉这部分代码是很浪费时间并且恼人的一件事。但是这也没法完全避免，我们可以使用一些技巧尽可能减少重新熟悉代码的时间。commit messages可以满足需要，它也反映了一个开发人员是否是良好的协作者。&lt;/p&gt;
+&lt;/blockquote&gt;
+
+&lt;p&gt;编写良好的Commit messages可以达到3个重要的目的：&lt;/p&gt;
+
+&lt;ul&gt;
+  &lt;li&gt;加快review的流程&lt;/li&gt;
+  &lt;li&gt;帮助我们编写良好的版本发布日志&lt;/li&gt;
+  &lt;li&gt;让之后的维护者了解代码里出现特定变化和feature被添加的原因&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;先来看看一个比较好的例子，感受一下：
+&lt;img src=&quot;http://images2015.cnblogs.com/blog/1030776/201702/1030776-20170221160013179-892954595.png&quot; alt=&quot;&quot; /&gt;&lt;/p&gt;
+
+&lt;p&gt;下面谈谈，如何让项目里面的Commit messages步入规范化，流程化。&lt;/p&gt;
+
+&lt;h3 id=&quot;commit-messages的基本语法&quot;&gt;Commit messages的基本语法&lt;/h3&gt;
+
+&lt;div class=&quot;language-sh highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&amp;lt;&lt;span class=&quot;nb&quot;&gt;type&lt;/span&gt;&amp;gt;: &amp;lt;subject&amp;gt;
+&amp;lt;BLANK LINE&amp;gt;
+&amp;lt;body&amp;gt;
+&amp;lt;BLANK LINE&amp;gt;
+&amp;lt;footer&amp;gt;
+&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+
+&lt;p&gt;Type表示提交类别，Subject表示标题行， Body表示主体描述内容。&lt;/p&gt;
+
+&lt;p&gt;Type的类别说明：&lt;/p&gt;
+&lt;ul&gt;
+  &lt;li&gt;feat: 添加新特性&lt;/li&gt;
+  &lt;li&gt;fix: 修复bug&lt;/li&gt;
+  &lt;li&gt;docs: 仅仅修改了文档&lt;/li&gt;
+  &lt;li&gt;style: 仅仅修改了空格、格式缩进、都好等等，不改变代码逻辑&lt;/li&gt;
+  &lt;li&gt;refactor: 代码重构，没有加新功能或者修复bug&lt;/li&gt;
+  &lt;li&gt;perf: 增加代码进行性能测试&lt;/li&gt;
+  &lt;li&gt;test: 增加测试用例&lt;/li&gt;
+  &lt;li&gt;chore: 改变构建流程、或者增加依赖库、工具等&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;h3 id=&quot;commit-messages格式要求&quot;&gt;Commit messages格式要求&lt;/h3&gt;
+
+&lt;div class=&quot;language-sh highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;c&quot;&gt;# 标题行：50个字符以内，描述主要变更内容&lt;/span&gt;
+&lt;span class=&quot;c&quot;&gt;#&lt;/span&gt;
+&lt;span class=&quot;c&quot;&gt;# 主体内容：更详细的说明文本，建议72个字符以内。 需要描述的信息包括:&lt;/span&gt;
+&lt;span class=&quot;c&quot;&gt;#&lt;/span&gt;
+&lt;span class=&quot;c&quot;&gt;# * 为什么这个变更是必须的? 它可能是用来修复一个bug，增加一个feature，提升性能、可靠性、稳定性等等&lt;/span&gt;
+&lt;span class=&quot;c&quot;&gt;# * 他如何解决这个问题? 具体描述解决问题的步骤&lt;/span&gt;
+&lt;span class=&quot;c&quot;&gt;# * 是否存在副作用、风险?&lt;/span&gt;
+&lt;span class=&quot;c&quot;&gt;#&lt;/span&gt;
+&lt;span class=&quot;c&quot;&gt;# 如果需要的化可以添加一个链接到issue地址或者其它文档&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+
+&lt;p&gt;这3个问题给代码的变更建立了良好的上下文，可以让其他的代码review人员或者项目成员直观的判断修改点是否正确。一条良好的commit message也可以让维护者知道这个patch是否适合发布到稳定的版本中去。&lt;/p&gt;
+
+&lt;p&gt;如果一个patch没有回答上面的这几个问题，那么它是无意义的。它会给review的人员造成负担，让他们花费大量时间去评审讨论这个patch的作用和意义。更糟糕的是，如果一个项目实施SCM纪律，则这个patch会被拒绝掉，然后开发人员需要花费时间重新编写一个新的patch。重新编写一个复杂的patch代价是巨大的，而把commit message写好只会花费几分钟。&lt;/p&gt;
+
+&lt;h3 id=&quot;commit-messages书写建议&quot;&gt;Commit messages书写建议&lt;/h3&gt;
+
+&lt;ul&gt;
+  &lt;li&gt;尽可能多的提交，单个Commit messages包含的内容不要过多&lt;/li&gt;
+  &lt;li&gt;标题行以Fix, Add, Change, Delete开始，采用命令式的模式。不要使用Fixed, Added, Changed等等&lt;/li&gt;
+  &lt;li&gt;始终让第二行是空白，不写任何内容&lt;/li&gt;
+  &lt;li&gt;主体内容注意换行，避免在gitk里面滚动条水平滑动&lt;/li&gt;
+  &lt;li&gt;永远不在 git commit 上增加 -m 或 –message= 参数，提交的时候git commit即可。&lt;/li&gt;
+  &lt;li&gt;如果你是vim用户，将下面这行代码加入到~/.vimrc。这会帮助你检查拼写和自动换行
+    &lt;div class=&quot;language-sh highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;autocmd Filetype gitcommit setlocal spell &lt;span class=&quot;nv&quot;&gt;textwidth&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;72
+&lt;/code&gt;&lt;/pre&gt;
+    &lt;/div&gt;
+  &lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;h3 id=&quot;使用commitizen工具&quot;&gt;使用Commitizen工具&lt;/h3&gt;
+
+&lt;p&gt;&lt;a href=&quot;https://github.com/commitizen/cz-cli&quot;&gt;Commitizen&lt;/a&gt;可以让你的commit message更加规范统一，适合项目团队使用，使用也很简单，使用npm安装后，提交代码的时候使用git cz去替代以前的git commit命令即可。&lt;/p&gt;
+
+&lt;p&gt;安装commitizen：&lt;/p&gt;
+
+&lt;div class=&quot;language-sh highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;gp&quot;&gt;$ &lt;/span&gt;npm install -g commitizen
+&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+&lt;p&gt;使用截图：&lt;/p&gt;
+
+&lt;p&gt;&lt;img src=&quot;http://images2015.cnblogs.com/blog/1030776/201702/1030776-20170221140646085-381664858.png&quot; alt=&quot;&quot; /&gt;&lt;/p&gt;
+
+&lt;h3 id=&quot;自动生成change-log&quot;&gt;自动生成Change log&lt;/h3&gt;
+
+&lt;p&gt;&lt;a href=&quot;https://github.com/conventional-changelog/conventional-changelog&quot;&gt;conventional-changelog&lt;/a&gt;是用来从git的元数据中生成 Change log文档的工具，只要你提交的格式满足它定义的标准，此处以angular标准为例子。使用它生成的Change log包含以下三个部分：&lt;/p&gt;
+
+&lt;p&gt;Bug Fixes Bug修复的信息
+Features 增加的特性
+BREAKING CHANGES 重大变更&lt;/p&gt;
+
+&lt;p&gt;可以参考它生成的文档&lt;a href=&quot;https://github.com/conventional-changelog/conventional-changelog/blob/master/CHANGELOG.md&quot;&gt;CHANGELOG.md&lt;/a&gt;，使用如下：&lt;/p&gt;
+
+&lt;div class=&quot;language-sh highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;gp&quot;&gt;$ &lt;/span&gt;npm install -g conventional-changelog-cli
+&lt;span class=&quot;gp&quot;&gt;$ &lt;/span&gt;&lt;span class=&quot;nb&quot;&gt;cd &lt;/span&gt;my-project
+&lt;span class=&quot;gp&quot;&gt;$ &lt;/span&gt;conventional-changelog -p angular -i CHANGELOG.md -s
+&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+
+&lt;p&gt;这不会覆盖你之前的CHANGE.md文档内容，会在这个文件的最上面插入新生成的日志信息。&lt;/p&gt;
+
+&lt;h3 id=&quot;参考链接&quot;&gt;参考链接&lt;/h3&gt;
+
+&lt;ul&gt;
+  &lt;li&gt;&lt;a href=&quot;http://stackoverflow.com/questions/2290016/git-commit-messages-50-72-formatting&quot;&gt;Git Commit Messages : 50/72 Formatting&lt;/a&gt;&lt;/li&gt;
+  &lt;li&gt;&lt;a href=&quot;https://git-scm.com/book/en/v2/Distributed-Git-Contributing-to-a-Project&quot;&gt;Distributed Git - Contributing to a Project&lt;/a&gt;&lt;/li&gt;
+  &lt;li&gt;&lt;a href=&quot;https://github.com/thoughtbot/dotfiles/blob/master/gitmessage&quot;&gt;thoughtbot&lt;/a&gt;&lt;/li&gt;
+  &lt;li&gt;&lt;a href=&quot;https://github.com/erlang/otp/wiki/Writing-good-commit-messages&quot;&gt;Erlang otp&lt;/a&gt;&lt;/li&gt;
+  &lt;li&gt;&lt;a href=&quot;https://github.com/conventional-changelog/conventional-changelog/blob/v0.5.3/conventions/angular.md&quot;&gt;Commit messages standard&lt;/a&gt;&lt;/li&gt;
+  &lt;li&gt;&lt;a href=&quot;https://github.com/conventional-changelog/conventional-changelog-cli&quot;&gt;conventional-changelog-cli&lt;/a&gt;&lt;/li&gt;
+&lt;/ul&gt;
+</description>
+        <pubDate>Tue, 21 Feb 2017 13:09:24 +0800</pubDate>
+        <link>http://localhost:4000/2017/02/%E5%A6%82%E4%BD%95%E5%86%99%E5%A5%BD-Git-commit-messages/</link>
+        <guid isPermaLink="true">http://localhost:4000/2017/02/%E5%A6%82%E4%BD%95%E5%86%99%E5%A5%BD-Git-commit-messages/</guid>
+        
+        
+      </item>
+    
+      <item>
+        <title>Javascript中的async await</title>
+        <description>&lt;p&gt;async / await是ES7的重要特性之一，也是目前社区里公认的优秀异步解决方案。目前，async / await这个特性已经是&lt;a href=&quot;https://github.com/tc39/ecma262/tree/82bebe057c9fca355cfbfeb36be8e42f18c61e94&quot;&gt;stage 3&lt;/a&gt;的建议，可以看看&lt;a href=&quot;https://tc39.github.io/process-document/&quot;&gt;TC39的进度&lt;/a&gt;，本篇文章将分享async / await是如何工作的，阅读本文前，希望你具备Promise、generator、yield等ES6的相关知识。&lt;/p&gt;
+
+&lt;p&gt;在详细介绍async / await之前，先回顾下目前在ES6中比较好的异步处理办法。下面的例子中数据请求用Node.js中的request模块，数据接口采用&lt;a href=&quot;https://developer.github.com/v3/&quot;&gt;Github v3 api文档&lt;/a&gt;提供的repo代码仓库详情API作为例子演示。&lt;/p&gt;
+
+&lt;h3 id=&quot;promise对异步的处理&quot;&gt;Promise对异步的处理&lt;/h3&gt;
+&lt;p&gt;虽然Node.js的异步IO带来了对高并发的良好支持，同时也让“回调”成为灾难，很容易造成回调地狱。传统的方式比如使用具名函数，虽然可以减少嵌套的层数，让代码看起来比较清晰。但是会造成比较差的编码和调试体验，你需要经常使用用ctrl + f去寻找某个具名函数的定义，这使得IDE窗口经常上下来回跳动。使用Promise之后，可以很好的减少嵌套的层数。另外Promise的实现采用了状态机，在函数里面可以很好的通过resolve和reject进行流程控制，你可以按照顺序链式的去执行一系列代码逻辑了。下面是使用Promise的一个例子：&lt;/p&gt;
+&lt;div class=&quot;language-javascript highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;kr&quot;&gt;const&lt;/span&gt; &lt;span class=&quot;nx&quot;&gt;request&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;nx&quot;&gt;require&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s1&quot;&gt;'request'&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;);&lt;/span&gt;
+&lt;span class=&quot;c1&quot;&gt;// 请求的url和header&lt;/span&gt;
+&lt;span class=&quot;kr&quot;&gt;const&lt;/span&gt; &lt;span class=&quot;nx&quot;&gt;options&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;
+  &lt;span class=&quot;na&quot;&gt;url&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;s1&quot;&gt;'https://api.github.com/repos/cpselvis/zhihu-crawler'&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt;
+  &lt;span class=&quot;na&quot;&gt;headers&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;
+    &lt;span class=&quot;s1&quot;&gt;'User-Agent'&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;s1&quot;&gt;'request'&lt;/span&gt;
+  &lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;
+&lt;span class=&quot;p&quot;&gt;};&lt;/span&gt;
+&lt;span class=&quot;c1&quot;&gt;// 获取仓库信息&lt;/span&gt;
+&lt;span class=&quot;kr&quot;&gt;const&lt;/span&gt; &lt;span class=&quot;nx&quot;&gt;getRepoData&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;()&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&amp;gt;&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;
+  &lt;span class=&quot;k&quot;&gt;return&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;new&lt;/span&gt; &lt;span class=&quot;nx&quot;&gt;Promise&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;((&lt;/span&gt;&lt;span class=&quot;nx&quot;&gt;resolve&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;nx&quot;&gt;reject&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&amp;gt;&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;
+    &lt;span class=&quot;nx&quot;&gt;request&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;nx&quot;&gt;options&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;nx&quot;&gt;err&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;nx&quot;&gt;res&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;nx&quot;&gt;body&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&amp;gt;&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;
+      &lt;span class=&quot;k&quot;&gt;if&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;nx&quot;&gt;err&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;
+        &lt;span class=&quot;nx&quot;&gt;reject&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;nx&quot;&gt;err&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;);&lt;/span&gt;
+      &lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;
+      &lt;span class=&quot;nx&quot;&gt;resolve&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;nx&quot;&gt;body&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;);&lt;/span&gt;
+    &lt;span class=&quot;p&quot;&gt;});&lt;/span&gt;
+  &lt;span class=&quot;p&quot;&gt;});&lt;/span&gt;
+&lt;span class=&quot;p&quot;&gt;};&lt;/span&gt;
+
+&lt;span class=&quot;nx&quot;&gt;getRepoData&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;()&lt;/span&gt;
+  &lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;nx&quot;&gt;then&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;((&lt;/span&gt;&lt;span class=&quot;nx&quot;&gt;result&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&amp;gt;&lt;/span&gt; &lt;span class=&quot;nx&quot;&gt;console&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;nx&quot;&gt;log&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;nx&quot;&gt;result&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;);)&lt;/span&gt;
+  &lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;k&quot;&gt;catch&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;((&lt;/span&gt;&lt;span class=&quot;nx&quot;&gt;reason&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&amp;gt;&lt;/span&gt; &lt;span class=&quot;nx&quot;&gt;console&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;nx&quot;&gt;error&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;nx&quot;&gt;reason&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;););&lt;/span&gt;
+
+&lt;span class=&quot;c1&quot;&gt;// 此处如果是多个Promise顺序执行的话，如下：&lt;/span&gt;
+&lt;span class=&quot;c1&quot;&gt;// 每个then里面去执行下一个promise&lt;/span&gt;
+&lt;span class=&quot;c1&quot;&gt;// getRepoData()&lt;/span&gt;
+&lt;span class=&quot;c1&quot;&gt;//   .then((value2) =&amp;gt; {return promise2})&lt;/span&gt;
+&lt;span class=&quot;c1&quot;&gt;//   .then((value3) =&amp;gt; {return promise3})&lt;/span&gt;
+&lt;span class=&quot;c1&quot;&gt;//   .then((x) =&amp;gt; console.log(x))&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+
+&lt;p&gt;不过Promise仍然存在缺陷，它只是减少了嵌套，并不能完全消除嵌套。举个例子，对于多个promise串行执行的情况，第一个promise的逻辑执行完之后，我们需要在它的then函数里面去执行第二个promise，这个时候会产生一层嵌套。另外，采用Promise的代码看起来依然是异步的，如果写的代码如果能够变成同步该多好啊！&lt;/p&gt;
+
+&lt;h3 id=&quot;generator对异步的处理&quot;&gt;Generator对异步的处理&lt;/h3&gt;
+&lt;p&gt;谈到generator，你应该不会对它感到陌生。在Node.js中对于回调的处理，我们经常用的&lt;a href=&quot;https://github.com/tj/co&quot;&gt;TJ / Co&lt;/a&gt;就是使用generator结合promise来实现的，co是coroutine的简称，借鉴于python、lua等语言中的协程。它可以将异步的代码逻辑写成同步的方式，这使得代码的阅读和组织变得更加清晰，也便于调试。&lt;/p&gt;
+&lt;div class=&quot;language-javascript highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;kr&quot;&gt;const&lt;/span&gt; &lt;span class=&quot;nx&quot;&gt;co&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;nx&quot;&gt;require&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s1&quot;&gt;'co'&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;);&lt;/span&gt;
+&lt;span class=&quot;kr&quot;&gt;const&lt;/span&gt; &lt;span class=&quot;nx&quot;&gt;request&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;nx&quot;&gt;require&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s1&quot;&gt;'request'&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;);&lt;/span&gt;
+
+&lt;span class=&quot;kr&quot;&gt;const&lt;/span&gt; &lt;span class=&quot;nx&quot;&gt;options&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;
+  &lt;span class=&quot;na&quot;&gt;url&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;s1&quot;&gt;'https://api.github.com/repos/cpselvis/zhihu-crawler'&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt;
+  &lt;span class=&quot;na&quot;&gt;headers&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;
+    &lt;span class=&quot;s1&quot;&gt;'User-Agent'&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;s1&quot;&gt;'request'&lt;/span&gt;
+  &lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;
+&lt;span class=&quot;p&quot;&gt;};&lt;/span&gt;
+&lt;span class=&quot;c1&quot;&gt;// yield后面是一个生成器 generator&lt;/span&gt;
+&lt;span class=&quot;kr&quot;&gt;const&lt;/span&gt; &lt;span class=&quot;nx&quot;&gt;getRepoData&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;kd&quot;&gt;function&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;*&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;()&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;
+  &lt;span class=&quot;k&quot;&gt;return&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;new&lt;/span&gt; &lt;span class=&quot;nx&quot;&gt;Promise&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;((&lt;/span&gt;&lt;span class=&quot;nx&quot;&gt;resolve&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;nx&quot;&gt;reject&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&amp;gt;&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;
+    &lt;span class=&quot;nx&quot;&gt;request&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;nx&quot;&gt;options&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;nx&quot;&gt;err&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;nx&quot;&gt;res&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;nx&quot;&gt;body&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&amp;gt;&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;
+      &lt;span class=&quot;k&quot;&gt;if&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;nx&quot;&gt;err&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;
+        &lt;span class=&quot;nx&quot;&gt;reject&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;nx&quot;&gt;err&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;);&lt;/span&gt;
+      &lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;
+      &lt;span class=&quot;nx&quot;&gt;resolve&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;nx&quot;&gt;body&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;);&lt;/span&gt;
+    &lt;span class=&quot;p&quot;&gt;});&lt;/span&gt;
+  &lt;span class=&quot;p&quot;&gt;});&lt;/span&gt;
+&lt;span class=&quot;p&quot;&gt;};&lt;/span&gt;
+
+&lt;span class=&quot;nx&quot;&gt;co&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;kd&quot;&gt;function&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;*&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;()&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;
+  &lt;span class=&quot;kr&quot;&gt;const&lt;/span&gt; &lt;span class=&quot;nx&quot;&gt;result&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;yield&lt;/span&gt; &lt;span class=&quot;nx&quot;&gt;getRepoData&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;;&lt;/span&gt;
+  &lt;span class=&quot;c1&quot;&gt;// ... 如果有多个异步流程，可以放在这里，比如&lt;/span&gt;
+  &lt;span class=&quot;c1&quot;&gt;// const r1 = yield getR1;&lt;/span&gt;
+  &lt;span class=&quot;c1&quot;&gt;// const r2 = yield getR2;&lt;/span&gt;
+  &lt;span class=&quot;c1&quot;&gt;// const r3 = yield getR3;&lt;/span&gt;
+  &lt;span class=&quot;c1&quot;&gt;// 每个yield相当于暂停，执行yield之后会等待它后面的generator返回值之后再执行后面其它的yield逻辑。&lt;/span&gt;
+  &lt;span class=&quot;k&quot;&gt;return&lt;/span&gt; &lt;span class=&quot;nx&quot;&gt;result&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;;&lt;/span&gt;
+&lt;span class=&quot;p&quot;&gt;}).&lt;/span&gt;&lt;span class=&quot;nx&quot;&gt;then&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;kd&quot;&gt;function&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;nx&quot;&gt;value&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;
+  &lt;span class=&quot;nx&quot;&gt;console&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;nx&quot;&gt;log&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;nx&quot;&gt;value&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;);&lt;/span&gt;
+&lt;span class=&quot;p&quot;&gt;},&lt;/span&gt; &lt;span class=&quot;kd&quot;&gt;function&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;nx&quot;&gt;err&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;
+  &lt;span class=&quot;nx&quot;&gt;console&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;nx&quot;&gt;error&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;nx&quot;&gt;err&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;nx&quot;&gt;stack&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;);&lt;/span&gt;
+&lt;span class=&quot;p&quot;&gt;});&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+
+&lt;h3 id=&quot;async--await对异步的处理&quot;&gt;async / await对异步的处理&lt;/h3&gt;
+&lt;p&gt;虽然co是社区里面的优秀异步解决方案，但是并不是语言标准，只是一个过渡方案。ES7语言层面提供async / await去解决语言层面的难题。目前async / await 在 IE edge中已经可以直接使用了，但是chrome和Node.js还没有支持。幸运的是，babel已经支持async的transform了，所以我们使用的时候引入babel就行。在开始之前我们需要引入以下的package，preset-stage-3里就有我们需要的async/await的编译文件。&lt;/p&gt;
+
+&lt;p&gt;无论是在Browser还是Node.js端都需要安装下面的包。&lt;/p&gt;
+&lt;div class=&quot;language-shell highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;gp&quot;&gt;$ &lt;/span&gt;npm install babel-core --save
+&lt;span class=&quot;gp&quot;&gt;$ &lt;/span&gt;npm install babel-preset-es2015 --save
+&lt;span class=&quot;gp&quot;&gt;$ &lt;/span&gt;npm install babel-preset-stage-3 --save
+&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+
+&lt;p&gt;这里推荐使用babel官方提供的require hook方法。就是通过require进来后，接下来的文件进行require的时候都会经过Babel的处理。因为我们知道CommonJs是同步的模块依赖，所以也是可行的方法。这个时候，需要编写两个文件，一个是启动的js文件，另外一个是真正执行程序的js文件。&lt;/p&gt;
+
+&lt;p&gt;启动文件index.js&lt;/p&gt;
+&lt;div class=&quot;language-javascript highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;nx&quot;&gt;require&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s1&quot;&gt;'babel-core/register'&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;);&lt;/span&gt;
+&lt;span class=&quot;nx&quot;&gt;require&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s1&quot;&gt;'./async.js'&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;);&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+
+&lt;p&gt;真正执行程序的async.js&lt;/p&gt;
+&lt;div class=&quot;language-javascript highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;kr&quot;&gt;const&lt;/span&gt; &lt;span class=&quot;nx&quot;&gt;request&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;nx&quot;&gt;require&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s1&quot;&gt;'request'&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;);&lt;/span&gt;
+
+&lt;span class=&quot;kr&quot;&gt;const&lt;/span&gt; &lt;span class=&quot;nx&quot;&gt;options&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;
+  &lt;span class=&quot;na&quot;&gt;url&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;s1&quot;&gt;'https://api.github.com/repos/cpselvis/zhihu-crawler'&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt;
+  &lt;span class=&quot;na&quot;&gt;headers&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;
+    &lt;span class=&quot;s1&quot;&gt;'User-Agent'&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;s1&quot;&gt;'request'&lt;/span&gt;
+  &lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;
+&lt;span class=&quot;p&quot;&gt;};&lt;/span&gt;
+
+&lt;span class=&quot;kr&quot;&gt;const&lt;/span&gt; &lt;span class=&quot;nx&quot;&gt;getRepoData&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;()&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&amp;gt;&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;
+  &lt;span class=&quot;k&quot;&gt;return&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;new&lt;/span&gt; &lt;span class=&quot;nx&quot;&gt;Promise&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;((&lt;/span&gt;&lt;span class=&quot;nx&quot;&gt;resolve&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;nx&quot;&gt;reject&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&amp;gt;&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;
+    &lt;span class=&quot;nx&quot;&gt;request&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;nx&quot;&gt;options&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;nx&quot;&gt;err&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;nx&quot;&gt;res&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;nx&quot;&gt;body&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&amp;gt;&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;
+      &lt;span class=&quot;k&quot;&gt;if&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;nx&quot;&gt;err&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;
+        &lt;span class=&quot;nx&quot;&gt;reject&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;nx&quot;&gt;err&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;);&lt;/span&gt;
+      &lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;
+      &lt;span class=&quot;nx&quot;&gt;resolve&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;nx&quot;&gt;body&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;);&lt;/span&gt;
+    &lt;span class=&quot;p&quot;&gt;});&lt;/span&gt;
+  &lt;span class=&quot;p&quot;&gt;});&lt;/span&gt;
+&lt;span class=&quot;p&quot;&gt;};&lt;/span&gt;
+
+&lt;span class=&quot;nx&quot;&gt;async&lt;/span&gt; &lt;span class=&quot;kd&quot;&gt;function&lt;/span&gt; &lt;span class=&quot;nx&quot;&gt;asyncFun&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;()&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;
+ &lt;span class=&quot;k&quot;&gt;try&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;
+    &lt;span class=&quot;kr&quot;&gt;const&lt;/span&gt; &lt;span class=&quot;nx&quot;&gt;value&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;nx&quot;&gt;await&lt;/span&gt; &lt;span class=&quot;nx&quot;&gt;getRepoData&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;();&lt;/span&gt;
+    &lt;span class=&quot;c1&quot;&gt;// ... 和上面的yield类似，如果有多个异步流程，可以放在这里，比如&lt;/span&gt;
+    &lt;span class=&quot;c1&quot;&gt;// const r1 = await getR1();&lt;/span&gt;
+    &lt;span class=&quot;c1&quot;&gt;// const r2 = await getR2();&lt;/span&gt;
+    &lt;span class=&quot;c1&quot;&gt;// const r3 = await getR3();&lt;/span&gt;
+    &lt;span class=&quot;c1&quot;&gt;// 每个await相当于暂停，执行await之后会等待它后面的函数（不是generator）返回值之后再执行后面其它的await逻辑。&lt;/span&gt;
+    &lt;span class=&quot;k&quot;&gt;return&lt;/span&gt; &lt;span class=&quot;nx&quot;&gt;value&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;;&lt;/span&gt;
+  &lt;span class=&quot;p&quot;&gt;}&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;catch&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;nx&quot;&gt;err&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;
+    &lt;span class=&quot;nx&quot;&gt;console&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;nx&quot;&gt;log&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;nx&quot;&gt;err&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;);&lt;/span&gt;
+  &lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;
+&lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;
+
+&lt;span class=&quot;nx&quot;&gt;asyncFun&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;().&lt;/span&gt;&lt;span class=&quot;nx&quot;&gt;then&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;nx&quot;&gt;x&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&amp;gt;&lt;/span&gt; &lt;span class=&quot;nx&quot;&gt;console&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;nx&quot;&gt;log&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;err&quot;&gt;`&lt;/span&gt;&lt;span class=&quot;na&quot;&gt;x&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;nx&quot;&gt;$&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;&lt;span class=&quot;nx&quot;&gt;x&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;&lt;span class=&quot;err&quot;&gt;`&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)).&lt;/span&gt;&lt;span class=&quot;k&quot;&gt;catch&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;nx&quot;&gt;err&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&amp;gt;&lt;/span&gt; &lt;span class=&quot;nx&quot;&gt;console&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;nx&quot;&gt;error&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;nx&quot;&gt;err&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;));&lt;/span&gt;
+
+&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+&lt;p&gt;注意点：&lt;/p&gt;
+&lt;ul&gt;
+  &lt;li&gt;async用来申明里面包裹的内容可以进行同步的方式执行，await则是进行执行顺序控制，每次执行一个await，程序都会暂停等待await返回值，然后再执行之后的await。&lt;/li&gt;
+  &lt;li&gt;await后面调用的函数需要返回一个promise，另外这个函数是一个普通的函数即可，而不是generator。&lt;/li&gt;
+  &lt;li&gt;await只能用在async函数之中，用在普通函数中会报错。&lt;/li&gt;
+  &lt;li&gt;await命令后面的 Promise 对象，运行结果可能是 rejected，所以最好把 await 命令放在 try…catch 代码块中。&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;其实，async / await的用法和co差不多，await和yield都是表示暂停，外面包裹一层async 或者 co来表示里面的代码可以采用同步的方式进行处理。不过async / await里面的await后面跟着的函数不需要额外处理，co是需要将它写成一个generator的。&lt;/p&gt;
+</description>
+        <pubDate>Mon, 23 Jan 2017 16:52:24 +0800</pubDate>
+        <link>http://localhost:4000/2017/01/Javascript%E4%B8%AD%E7%9A%84async-await/</link>
+        <guid isPermaLink="true">http://localhost:4000/2017/01/Javascript%E4%B8%AD%E7%9A%84async-await/</guid>
+        
+        
+      </item>
+    
+      <item>
+        <title>在Node.js中使用RabbitMQ系列二 任务队列</title>
+        <description>&lt;p&gt;在上一篇文章&lt;a href=&quot;http://www.cnblogs.com/cpselvis/p/6288330.html&quot;&gt;在Node.js中使用RabbitMQ系列一 Hello world&lt;/a&gt;我有使用一个任务队列，不过当时的场景是将消息发送给一个消费者，本篇文章我将讨论有多个消费者的场景。&lt;/p&gt;
+
+&lt;p&gt;&lt;img src=&quot;http://images2015.cnblogs.com/blog/1030776/201701/1030776-20170118011815265-2038387278.png&quot; alt=&quot;&quot; /&gt;&lt;/p&gt;
+
+&lt;p&gt;其实，任务队列最核心解决的问题是避免立即处理那些耗时的任务，也就是避免请求-响应的这种同步模式。取而代之的是我们通过调度算法，让这些耗时的任务之后再执行，也就是采用异步的模式。我们需要将一条消息封装成一个任务，并且将它添加到任务队列里面。后台会运行多个工作进程(worker process)，通过调度算法，将队列里的任务依次弹出来，并交给其中的一个工作进程进行处理执行。这个概念尤其适合那些HTTP短连接的web应用，它们无法在短时间内处理这种复杂的任务。&lt;/p&gt;
+
+&lt;h3 id=&quot;准备工作&quot;&gt;准备工作&lt;/h3&gt;
+&lt;p&gt;我们将字符串类型的消息看作是耗时的任务，并且每个字符串消息最后带上一些点。每个点代表该任务需要消耗的秒数。在worker进程处理的时候可以采用setTimeout函数来进行模拟。举个例子：一个伪造的耗时任务是Hello.，则这个任务会消耗1秒，一个伪造的耗时任务是Hello..，则这个任务会消耗2秒，一个伪造的耗时任务是Hello… ，并且这个任务的处理时间会耗费3秒。&lt;/p&gt;
+
+&lt;p&gt;这里稍微对上篇文章的send.js文件修改，让它可以发送用户自定义的任意的消息，这个程序会将任务交给任务队列，我们用new_task.js来进行命名：&lt;/p&gt;
+&lt;div class=&quot;language-javascript highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;kd&quot;&gt;var&lt;/span&gt; &lt;span class=&quot;nx&quot;&gt;q&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;s1&quot;&gt;'task_queue'&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;;&lt;/span&gt;
+&lt;span class=&quot;kd&quot;&gt;var&lt;/span&gt; &lt;span class=&quot;nx&quot;&gt;msg&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;nx&quot;&gt;process&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;nx&quot;&gt;argv&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;nx&quot;&gt;slice&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;mi&quot;&gt;2&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;).&lt;/span&gt;&lt;span class=&quot;nx&quot;&gt;join&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s1&quot;&gt;' '&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;||&lt;/span&gt; &lt;span class=&quot;s2&quot;&gt;&quot;Hello World!&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;;&lt;/span&gt;
+
+&lt;span class=&quot;nx&quot;&gt;ch&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;nx&quot;&gt;assertQueue&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;nx&quot;&gt;q&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;&lt;span class=&quot;na&quot;&gt;durable&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;kc&quot;&gt;true&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;});&lt;/span&gt;
+&lt;span class=&quot;nx&quot;&gt;ch&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;nx&quot;&gt;sendToQueue&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;nx&quot;&gt;q&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;new&lt;/span&gt; &lt;span class=&quot;nx&quot;&gt;Buffer&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;nx&quot;&gt;msg&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;),&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;&lt;span class=&quot;na&quot;&gt;persistent&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;kc&quot;&gt;true&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;});&lt;/span&gt;
+&lt;span class=&quot;nx&quot;&gt;console&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;nx&quot;&gt;log&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot; [x] Sent '%s'&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;nx&quot;&gt;msg&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;);&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+
+&lt;p&gt;我们的receive.js文件也要进行修改，它需要伪造任务的处理时间，让字符串类型的任务看起来需要几秒钟时间（具体取决于 . 的个数）。&lt;/p&gt;
+&lt;div class=&quot;language-javascript highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;nx&quot;&gt;ch&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;nx&quot;&gt;consume&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;nx&quot;&gt;q&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;kd&quot;&gt;function&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;nx&quot;&gt;msg&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;
+  &lt;span class=&quot;kd&quot;&gt;var&lt;/span&gt; &lt;span class=&quot;nx&quot;&gt;secs&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;nx&quot;&gt;msg&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;nx&quot;&gt;content&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;nx&quot;&gt;toString&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;().&lt;/span&gt;&lt;span class=&quot;nx&quot;&gt;split&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s1&quot;&gt;'.'&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;).&lt;/span&gt;&lt;span class=&quot;nx&quot;&gt;length&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;-&lt;/span&gt; &lt;span class=&quot;mi&quot;&gt;1&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;;&lt;/span&gt;
+
+  &lt;span class=&quot;nx&quot;&gt;console&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;nx&quot;&gt;log&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot; [x] Received %s&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;nx&quot;&gt;msg&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;nx&quot;&gt;content&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;nx&quot;&gt;toString&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;());&lt;/span&gt;
+  &lt;span class=&quot;nx&quot;&gt;setTimeout&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;kd&quot;&gt;function&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;()&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;
+    &lt;span class=&quot;nx&quot;&gt;console&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;nx&quot;&gt;log&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot; [x] Done&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;);&lt;/span&gt;
+  &lt;span class=&quot;p&quot;&gt;},&lt;/span&gt; &lt;span class=&quot;nx&quot;&gt;secs&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;*&lt;/span&gt; &lt;span class=&quot;mi&quot;&gt;1000&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;);&lt;/span&gt;
+&lt;span class=&quot;p&quot;&gt;},&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;&lt;span class=&quot;na&quot;&gt;noAck&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;kc&quot;&gt;true&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;});&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+
+&lt;p&gt;这里以一个worker工作进程为例子，我们先在左侧的shell窗口开启一个worker进程，之后在右侧shell窗口发送自定义的消息，执行看看效果：
+&lt;img src=&quot;http://images2015.cnblogs.com/blog/1030776/201701/1030776-20170117230859609-1641438742.png&quot; alt=&quot;&quot; /&gt;&lt;/p&gt;
+
+&lt;h3 id=&quot;轮询调度算法round-robin&quot;&gt;轮询调度算法(Round-robin)&lt;/h3&gt;
+&lt;p&gt;使用任务队列的一个优势是能够将任务并行执行，如果需要处理大量的积压任务，我们只需要像上面运行worker进程的方式，增加更多的worker，这个让可伸缩变得更加的容易。
+首先，我们使用item2开启2个shell窗口，并在里面运行两个worker进程，但是到底是哪个worker会对消息进行处理呢？这里我们可以做个简单的实验来看看，如下图所示，左侧是两个worker进程，右侧是消息发送端：
+&lt;img src=&quot;http://images2015.cnblogs.com/blog/1030776/201701/1030776-20170117232359812-1849813189.png&quot; alt=&quot;&quot; /&gt;&lt;/p&gt;
+
+&lt;p&gt;默认情况下，RabbitMQ会采用Round-robin算法来分发任务队列中的任务，每次分发的时候都会将任务派发给下一个消费者，这样每个消费者(worker进程)处理的任务数量其实是一样多的。&lt;/p&gt;
+
+&lt;h3 id=&quot;消息确认&quot;&gt;消息确认&lt;/h3&gt;
+&lt;p&gt;处理一个复杂的任务需要耗费很长时间，这个时间段里面，可能我们的worker进程由于某种原因挂掉了，这种异常情况是需要考虑的。但是我们现有的代码里面并没有做这种异常的处理，当RabbitMQ将任务派发给worker进程之后，我们立即将这个任务从内存中剔除掉了，设想下，假设worker收到消息之后，我们马上将进程杀死掉，这个时候任务并没有被成功执行的。同时，我们也会丢失所有派发到这个worker进程但是还没有被处理的任务信息。
+但是，我们并不想丢掉任何一个任务，如果一个worker进程挂掉，我们更希望能够将这个任务派发给其它的worker来处理。
+为了避免任务信息丢失的情况，RabbitMQ支持消息确认。在一个任务发送到了worker进程并且被成功处理完毕之后，一个ack (消息确认)的标识会从消费者发回来告诉RabbitMQ这个任务已经被处理完了，可以将它删除了。
+如果一个消费者挂掉了（常见的原因如消息通道关闭了，连接丢失，TCP连接丢失），没有向RabbitMQ发送消息确认这个ack的标识，这个时候RabbitMQ会将它从新加入到队列中，如果有其它消费者存在，那么RabbitMQ会马上将这个任务重新派发下去。之前的例子里面我们并没有开启消息确认这个选项，现在我们可以通过{noAck: false}来开启：&lt;/p&gt;
+&lt;div class=&quot;language-javascript highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;nx&quot;&gt;ch&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;nx&quot;&gt;consume&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;nx&quot;&gt;q&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;kd&quot;&gt;function&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;nx&quot;&gt;msg&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;
+  &lt;span class=&quot;kd&quot;&gt;var&lt;/span&gt; &lt;span class=&quot;nx&quot;&gt;secs&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;nx&quot;&gt;msg&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;nx&quot;&gt;content&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;nx&quot;&gt;toString&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;().&lt;/span&gt;&lt;span class=&quot;nx&quot;&gt;split&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s1&quot;&gt;'.'&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;).&lt;/span&gt;&lt;span class=&quot;nx&quot;&gt;length&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;-&lt;/span&gt; &lt;span class=&quot;mi&quot;&gt;1&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;;&lt;/span&gt;
+
+  &lt;span class=&quot;nx&quot;&gt;console&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;nx&quot;&gt;log&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot; [x] Received %s&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;nx&quot;&gt;msg&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;nx&quot;&gt;content&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;nx&quot;&gt;toString&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;());&lt;/span&gt;
+  &lt;span class=&quot;nx&quot;&gt;setTimeout&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;kd&quot;&gt;function&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;()&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;
+    &lt;span class=&quot;nx&quot;&gt;console&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;nx&quot;&gt;log&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot; [x] Done&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;);&lt;/span&gt;
+    &lt;span class=&quot;nx&quot;&gt;ch&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;nx&quot;&gt;ack&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;nx&quot;&gt;msg&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;);&lt;/span&gt;
+  &lt;span class=&quot;p&quot;&gt;},&lt;/span&gt; &lt;span class=&quot;nx&quot;&gt;secs&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;*&lt;/span&gt; &lt;span class=&quot;mi&quot;&gt;1000&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;);&lt;/span&gt;
+&lt;span class=&quot;p&quot;&gt;},&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;&lt;span class=&quot;na&quot;&gt;noAck&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;kc&quot;&gt;false&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;});&lt;/span&gt;     &lt;span class=&quot;c1&quot;&gt;// 开启消息确认标识&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+
+&lt;p&gt;可以用CTRL + C来做个实验看看效果。&lt;/p&gt;
+
+&lt;h3 id=&quot;消息持久化&quot;&gt;消息持久化&lt;/h3&gt;
+&lt;p&gt;刚刚谈到，如果一个worker进程挂掉了，不让消息丢失的做法。但是，如果整个RabbitMQ的服务器挂掉了呢？当一个RabbitMQ服务退出或者中断的情况下，它会忘记任务队列里面的消息除非你告诉它不要丢掉，即我们通知RabbitMQ任务队列和这些任务都是需要持久化的。&lt;/p&gt;
+
+&lt;p&gt;首先，我们需要确保RabbitMQ永远不会丢失掉我们的任务队列。&lt;/p&gt;
+&lt;div class=&quot;language-javascript highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;nx&quot;&gt;ch&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;nx&quot;&gt;assertQueue&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s1&quot;&gt;'hello'&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;&lt;span class=&quot;na&quot;&gt;durable&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;kc&quot;&gt;true&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;});&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+&lt;p&gt;但是，你会发现这样并没有效果，那是因为hello这个队列我们已经定义过，并且指定了它不需要持久化。RabbitMQ不允许我们通过改变参数配置的方式对已经存在的任务队列进行重新定义，因此我们需要定义一个新的任务队列。&lt;/p&gt;
+&lt;div class=&quot;language-javascript highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;nx&quot;&gt;ch&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;nx&quot;&gt;assertQueue&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s1&quot;&gt;'task_queue'&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;&lt;span class=&quot;na&quot;&gt;durable&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;kc&quot;&gt;true&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;});&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+&lt;p&gt;这行代码需要同时在生产者和消费者里面的相关代码的地方进行修改。&lt;/p&gt;
+
+&lt;p&gt;接下来，我们需要通过配置persistent 选项让我们发送的消息也是持久化的。&lt;/p&gt;
+&lt;div class=&quot;language-javascript highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;nx&quot;&gt;ch&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;nx&quot;&gt;sendToQueue&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;nx&quot;&gt;q&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;new&lt;/span&gt; &lt;span class=&quot;nx&quot;&gt;Buffer&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;nx&quot;&gt;msg&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;),&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;&lt;span class=&quot;na&quot;&gt;persistent&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;kc&quot;&gt;true&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;});&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+
+&lt;h3 id=&quot;公平调度&quot;&gt;公平调度&lt;/h3&gt;
+&lt;p&gt;前面的例子，我们讨论了RabbitMQ的调度方式，即采用Round-robin轮询调度算法，因此它会将消息均匀的分配给每个worker进程。RabbitMQ并不会关注每个worker进程有多少个消息没有确认，它只会不断的给你派发任务，不管你能不能处理的过来。这个时候，问题就出现了，设想下，假设有2个worker，其中1个worker刚好很不幸被分配了一个非常复杂的任务，可能需要耗费好几个小时的时间，另外一个worker被分配的任务都比较简单，只需要几分钟就能处理完，由于RabbitMQ的任务分配问题，有很多新的任务依然会分配到那个正在处理很耗时任务的worker上面，这个worker后面的任务都会处于等待状态。幸好，RabbitMQ可以通过prefetch(1)来指定某个worker同时最多只会派发到1个任务，一旦任务处理完成发送了确认通知，才会有新的任务派发过来。&lt;/p&gt;
+&lt;div class=&quot;language-javascript highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;nx&quot;&gt;ch&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;nx&quot;&gt;prefetch&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;mi&quot;&gt;1&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;);&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+
+&lt;h3 id=&quot;最终的代码&quot;&gt;最终的代码&lt;/h3&gt;
+
+&lt;p&gt;new_task.js 代码:&lt;/p&gt;
+&lt;div class=&quot;language-javascript highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;kd&quot;&gt;var&lt;/span&gt; &lt;span class=&quot;nx&quot;&gt;amqp&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;nx&quot;&gt;require&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s1&quot;&gt;'amqplib/callback_api'&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;);&lt;/span&gt;
+
+&lt;span class=&quot;nx&quot;&gt;amqp&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;nx&quot;&gt;connect&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s1&quot;&gt;'amqp://localhost'&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;kd&quot;&gt;function&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;nx&quot;&gt;err&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;nx&quot;&gt;conn&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;
+  &lt;span class=&quot;nx&quot;&gt;conn&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;nx&quot;&gt;createChannel&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;kd&quot;&gt;function&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;nx&quot;&gt;err&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;nx&quot;&gt;ch&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;
+    &lt;span class=&quot;kd&quot;&gt;var&lt;/span&gt; &lt;span class=&quot;nx&quot;&gt;q&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;s1&quot;&gt;'task_queue'&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;;&lt;/span&gt;
+    &lt;span class=&quot;kd&quot;&gt;var&lt;/span&gt; &lt;span class=&quot;nx&quot;&gt;msg&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;nx&quot;&gt;process&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;nx&quot;&gt;argv&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;nx&quot;&gt;slice&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;mi&quot;&gt;2&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;).&lt;/span&gt;&lt;span class=&quot;nx&quot;&gt;join&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s1&quot;&gt;' '&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;||&lt;/span&gt; &lt;span class=&quot;s2&quot;&gt;&quot;Hello World!&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;;&lt;/span&gt;
+
+    &lt;span class=&quot;nx&quot;&gt;ch&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;nx&quot;&gt;assertQueue&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;nx&quot;&gt;q&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;&lt;span class=&quot;na&quot;&gt;durable&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;kc&quot;&gt;true&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;});&lt;/span&gt;
+    &lt;span class=&quot;nx&quot;&gt;ch&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;nx&quot;&gt;sendToQueue&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;nx&quot;&gt;q&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;new&lt;/span&gt; &lt;span class=&quot;nx&quot;&gt;Buffer&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;nx&quot;&gt;msg&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;),&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;&lt;span class=&quot;na&quot;&gt;persistent&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;kc&quot;&gt;true&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;});&lt;/span&gt;
+    &lt;span class=&quot;nx&quot;&gt;console&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;nx&quot;&gt;log&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot; [x] Sent '%s'&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;nx&quot;&gt;msg&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;);&lt;/span&gt;
+  &lt;span class=&quot;p&quot;&gt;});&lt;/span&gt;
+  &lt;span class=&quot;nx&quot;&gt;setTimeout&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;kd&quot;&gt;function&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;()&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt; &lt;span class=&quot;nx&quot;&gt;conn&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;nx&quot;&gt;close&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;();&lt;/span&gt; &lt;span class=&quot;nx&quot;&gt;process&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;nx&quot;&gt;exit&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;mi&quot;&gt;0&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;},&lt;/span&gt; &lt;span class=&quot;mi&quot;&gt;500&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;);&lt;/span&gt;
+&lt;span class=&quot;p&quot;&gt;});&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+
+&lt;p&gt;worker.js:&lt;/p&gt;
+&lt;div class=&quot;language-javascript highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;kd&quot;&gt;var&lt;/span&gt; &lt;span class=&quot;nx&quot;&gt;amqp&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;nx&quot;&gt;require&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s1&quot;&gt;'amqplib/callback_api'&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;);&lt;/span&gt;
+
+&lt;span class=&quot;nx&quot;&gt;amqp&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;nx&quot;&gt;connect&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s1&quot;&gt;'amqp://localhost'&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;kd&quot;&gt;function&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;nx&quot;&gt;err&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;nx&quot;&gt;conn&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;
+  &lt;span class=&quot;nx&quot;&gt;conn&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;nx&quot;&gt;createChannel&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;kd&quot;&gt;function&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;nx&quot;&gt;err&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;nx&quot;&gt;ch&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;
+    &lt;span class=&quot;kd&quot;&gt;var&lt;/span&gt; &lt;span class=&quot;nx&quot;&gt;q&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;s1&quot;&gt;'task_queue'&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;;&lt;/span&gt;
+
+    &lt;span class=&quot;nx&quot;&gt;ch&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;nx&quot;&gt;assertQueue&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;nx&quot;&gt;q&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;&lt;span class=&quot;na&quot;&gt;durable&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;kc&quot;&gt;true&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;});&lt;/span&gt;
+    &lt;span class=&quot;nx&quot;&gt;ch&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;nx&quot;&gt;prefetch&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;mi&quot;&gt;1&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;);&lt;/span&gt;
+    &lt;span class=&quot;nx&quot;&gt;console&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;nx&quot;&gt;log&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot; [*] Waiting for messages in %s. To exit press CTRL+C&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;nx&quot;&gt;q&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;);&lt;/span&gt;
+    &lt;span class=&quot;nx&quot;&gt;ch&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;nx&quot;&gt;consume&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;nx&quot;&gt;q&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;kd&quot;&gt;function&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;nx&quot;&gt;msg&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;
+      &lt;span class=&quot;kd&quot;&gt;var&lt;/span&gt; &lt;span class=&quot;nx&quot;&gt;secs&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;nx&quot;&gt;msg&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;nx&quot;&gt;content&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;nx&quot;&gt;toString&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;().&lt;/span&gt;&lt;span class=&quot;nx&quot;&gt;split&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s1&quot;&gt;'.'&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;).&lt;/span&gt;&lt;span class=&quot;nx&quot;&gt;length&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;-&lt;/span&gt; &lt;span class=&quot;mi&quot;&gt;1&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;;&lt;/span&gt;
+
+      &lt;span class=&quot;nx&quot;&gt;console&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;nx&quot;&gt;log&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot; [x] Received %s&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;nx&quot;&gt;msg&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;nx&quot;&gt;content&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;nx&quot;&gt;toString&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;());&lt;/span&gt;
+      &lt;span class=&quot;nx&quot;&gt;setTimeout&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;kd&quot;&gt;function&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;()&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;
+        &lt;span class=&quot;nx&quot;&gt;console&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;nx&quot;&gt;log&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot; [x] Done&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;);&lt;/span&gt;
+        &lt;span class=&quot;nx&quot;&gt;ch&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;nx&quot;&gt;ack&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;nx&quot;&gt;msg&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;);&lt;/span&gt;
+      &lt;span class=&quot;p&quot;&gt;},&lt;/span&gt; &lt;span class=&quot;nx&quot;&gt;secs&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;*&lt;/span&gt; &lt;span class=&quot;mi&quot;&gt;1000&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;);&lt;/span&gt;
+    &lt;span class=&quot;p&quot;&gt;},&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;&lt;span class=&quot;na&quot;&gt;noAck&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;kc&quot;&gt;false&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;});&lt;/span&gt;
+  &lt;span class=&quot;p&quot;&gt;});&lt;/span&gt;
+&lt;span class=&quot;p&quot;&gt;});&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+</description>
+        <pubDate>Tue, 17 Jan 2017 23:28:24 +0800</pubDate>
+        <link>http://localhost:4000/2017/01/%E5%9C%A8Node.js%E4%B8%AD%E4%BD%BF%E7%94%A8RabbitMQ%E7%B3%BB%E5%88%97%E4%BA%8C-%E4%BB%BB%E5%8A%A1%E9%98%9F%E5%88%97/</link>
+        <guid isPermaLink="true">http://localhost:4000/2017/01/%E5%9C%A8Node.js%E4%B8%AD%E4%BD%BF%E7%94%A8RabbitMQ%E7%B3%BB%E5%88%97%E4%BA%8C-%E4%BB%BB%E5%8A%A1%E9%98%9F%E5%88%97/</guid>
+        
+        
+      </item>
+    
+      <item>
+        <title>在Node.js中使用RabbitMQ系列一 Hello world</title>
+        <description>&lt;p&gt;本篇文章以Node.js为例子，来实际操作如何和RabbitMQ进行交互。&lt;/p&gt;
+
+&lt;h3 id=&quot;介绍&quot;&gt;介绍&lt;/h3&gt;
+&lt;p&gt;RabbitMQ是一个消息代理。它最初的思想特别简单：接受并且转发消息。你可以将它想象为邮局：当你将邮件放到信箱中，你可以非常肯定快件员最终会将邮件交到接受人手中。你可以把RabbitMQ比喻为信箱、邮局和快递员。RabbitMQ和邮局之间主要的区别是它不处理纸张，而是接受、存储和转发二进制数据‒消息。&lt;/p&gt;
+
+&lt;p&gt;在RabbitMQ中，有一些基本术语：&lt;/p&gt;
+&lt;ul&gt;
+  &lt;li&gt;生产者：就是发送信息这方。&lt;/li&gt;
+  &lt;li&gt;任务队列：虽然信息流在RabbitMQ和你的应用之间流动，它可以存储在一个队列中。队列不受任何限制的约束，它可以存储任意多的消息，它本质上是一个无限的缓冲区。许多生产者可以将消息发往到这个队列中，许多消费者可以尝试从这个队列中接受数据。&lt;/li&gt;
+  &lt;li&gt;消费者：消费者和信息接受者有相近的含义，一个消费者就是一个等待去接受信息的程序。&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;h3 id=&quot;安装rabbitmq-server&quot;&gt;安装RabbitMQ server&lt;/h3&gt;
+&lt;p&gt;打开RabbitMQ的下载页面（https://www.rabbitmq.com/download.html），下载安装，这里以Mac OSX平台安装为例：
+RabbitMQ依赖Erlang，由于Mac OSX本身已经安装了Erlang，所以可以直接通过Homebrew来进行安装。&lt;/p&gt;
+&lt;div class=&quot;language-sh highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;gp&quot;&gt;$ &lt;/span&gt;brew update
+&lt;span class=&quot;gp&quot;&gt;$ &lt;/span&gt;brew install rabbitmq
+&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+&lt;p&gt;安装完后，需要将/usr/local/sbin添加到$PATH，添加到./.bash_profile文件，然后&lt;/p&gt;
+&lt;div class=&quot;language-sh highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;gp&quot;&gt;$ &lt;/span&gt;&lt;span class=&quot;nb&quot;&gt;source&lt;/span&gt; ./.bash_profile
+&lt;span class=&quot;gp&quot;&gt;$ &lt;/span&gt;&lt;span class=&quot;nb&quot;&gt;echo&lt;/span&gt; &lt;span class=&quot;nv&quot;&gt;$PATH&lt;/span&gt;      // 检查环境变量是否已经成功加入
+&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+
+&lt;p&gt;安装完成后就可以启动RabbitMQ server了。
+&lt;img src=&quot;http://images2015.cnblogs.com/blog/1030776/201701/1030776-20170116114442083-952414838.jpg&quot; alt=&quot;&quot; /&gt;&lt;/p&gt;
+
+&lt;p&gt;至此，安装就完成了。运行rabbitmq-server命令时可能会报错误：ERROR: epmd error for host localhost: timeout (timed out)，如果遇到这种情况，可以打开/etc/hosts文件，在文件末尾加上 127.0.0.1 localhost即可解决问题。&lt;/p&gt;
+
+&lt;h3 id=&quot;hello-world&quot;&gt;Hello world&lt;/h3&gt;
+&lt;p&gt;在这个部分，我会使用Javascript编写两个小程序。一个发送单个消息的生产者和接收消息并将其打印出来的消费者。我们将跳过在amqp.node API的一些细节，集中在这个非常简单的事情。&lt;/p&gt;
+
+&lt;p&gt;在下图中，P代表生产者，C代表消费者，中间红色代表的是任务队列-消息缓冲区
+&lt;img src=&quot;http://images2015.cnblogs.com/blog/1030776/201701/1030776-20170116011306536-104488198.png&quot; alt=&quot;&quot; /&gt;&lt;/p&gt;
+
+&lt;p&gt;首先，使用npm安装amqp.node&lt;/p&gt;
+&lt;div class=&quot;language-javascript highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;nx&quot;&gt;$&lt;/span&gt; &lt;span class=&quot;nx&quot;&gt;npm&lt;/span&gt; &lt;span class=&quot;nx&quot;&gt;install&lt;/span&gt; &lt;span class=&quot;nx&quot;&gt;amqplib&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+
+&lt;h3 id=&quot;发送消息&quot;&gt;发送消息&lt;/h3&gt;
+&lt;p&gt;这里我将消息的发送者称作send.js，消息接受者称作receive.js，消息发送者会连接到RabbitMQ，发送一个消息，最后退出。
+首先引入amqplib这个模块：&lt;/p&gt;
+&lt;div class=&quot;language-javascript highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;kd&quot;&gt;var&lt;/span&gt; &lt;span class=&quot;nx&quot;&gt;amqp&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;nx&quot;&gt;require&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s1&quot;&gt;'amqplib/callback_api'&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;);&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+
+&lt;p&gt;连接到 RabbitMQ server&lt;/p&gt;
+&lt;div class=&quot;language-javascript highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;nx&quot;&gt;amqp&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;nx&quot;&gt;connect&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s1&quot;&gt;'amqp://localhost'&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;kd&quot;&gt;function&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;nx&quot;&gt;err&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;nx&quot;&gt;conn&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{});&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+
+&lt;p&gt;接下来创建一个通道，&lt;/p&gt;
+&lt;div class=&quot;language-javascript highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;nx&quot;&gt;amqp&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;nx&quot;&gt;connect&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s1&quot;&gt;'amqp://localhost'&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;kd&quot;&gt;function&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;nx&quot;&gt;err&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;nx&quot;&gt;conn&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;
+  &lt;span class=&quot;nx&quot;&gt;conn&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;nx&quot;&gt;createChannel&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;kd&quot;&gt;function&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;nx&quot;&gt;err&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;nx&quot;&gt;ch&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{});&lt;/span&gt;
+&lt;span class=&quot;p&quot;&gt;});&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+
+&lt;p&gt;为了发送消息，我们需要定义一个队列，我们可以将消息发送到这个队列中：&lt;/p&gt;
+&lt;div class=&quot;language-javascript highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;nx&quot;&gt;amqp&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;nx&quot;&gt;connect&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s1&quot;&gt;'amqp://localhost'&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;kd&quot;&gt;function&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;nx&quot;&gt;err&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;nx&quot;&gt;conn&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;
+  &lt;span class=&quot;nx&quot;&gt;conn&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;nx&quot;&gt;createChannel&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;kd&quot;&gt;function&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;nx&quot;&gt;err&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;nx&quot;&gt;ch&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;
+    &lt;span class=&quot;kd&quot;&gt;var&lt;/span&gt; &lt;span class=&quot;nx&quot;&gt;q&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;s1&quot;&gt;'hello'&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;;&lt;/span&gt;
+
+    &lt;span class=&quot;nx&quot;&gt;ch&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;nx&quot;&gt;assertQueue&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;nx&quot;&gt;q&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;&lt;span class=&quot;na&quot;&gt;durable&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;kc&quot;&gt;false&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;});&lt;/span&gt;
+    &lt;span class=&quot;c1&quot;&gt;// Note: on Node 6 Buffer.from(msg) should be used&lt;/span&gt;
+    &lt;span class=&quot;nx&quot;&gt;ch&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;nx&quot;&gt;sendToQueue&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;nx&quot;&gt;q&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;new&lt;/span&gt; &lt;span class=&quot;nx&quot;&gt;Buffer&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s1&quot;&gt;'Hello World!'&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;));&lt;/span&gt;
+    &lt;span class=&quot;nx&quot;&gt;console&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;nx&quot;&gt;log&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot; [x] Sent 'Hello World!'&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;);&lt;/span&gt;
+  &lt;span class=&quot;p&quot;&gt;});&lt;/span&gt;
+&lt;span class=&quot;p&quot;&gt;});&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+
+&lt;p&gt;最后，我们关闭连接，并且退出：&lt;/p&gt;
+&lt;div class=&quot;language-javascript highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;nx&quot;&gt;setTimeout&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;kd&quot;&gt;function&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;()&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt; &lt;span class=&quot;nx&quot;&gt;conn&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;nx&quot;&gt;close&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;();&lt;/span&gt; &lt;span class=&quot;nx&quot;&gt;process&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;nx&quot;&gt;exit&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;mi&quot;&gt;0&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;},&lt;/span&gt; &lt;span class=&quot;mi&quot;&gt;500&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;);&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+
+&lt;p&gt;最终代码参考：&lt;a href=&quot;https://github.com/rabbitmq/rabbitmq-tutorials/blob/master/javascript-nodejs/src/send.js&quot;&gt;send.js&lt;/a&gt;&lt;/p&gt;
+
+&lt;h3 id=&quot;接受消息&quot;&gt;接受消息&lt;/h3&gt;
+&lt;p&gt;建立一个接受者的方式和发送者是相同的。打开一个连接和通道，并且申明一个需要处理的队列。注意：这里的队列和发送者里面定义的队列需要匹配。&lt;/p&gt;
+&lt;div class=&quot;language-javascript highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;nx&quot;&gt;amqp&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;nx&quot;&gt;connect&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s1&quot;&gt;'amqp://localhost'&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;kd&quot;&gt;function&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;nx&quot;&gt;err&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;nx&quot;&gt;conn&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;
+  &lt;span class=&quot;nx&quot;&gt;conn&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;nx&quot;&gt;createChannel&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;kd&quot;&gt;function&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;nx&quot;&gt;err&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;nx&quot;&gt;ch&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;
+    &lt;span class=&quot;kd&quot;&gt;var&lt;/span&gt; &lt;span class=&quot;nx&quot;&gt;q&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;s1&quot;&gt;'hello'&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;;&lt;/span&gt;
+
+    &lt;span class=&quot;nx&quot;&gt;ch&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;nx&quot;&gt;assertQueue&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;nx&quot;&gt;q&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;&lt;span class=&quot;na&quot;&gt;durable&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;kc&quot;&gt;false&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;});&lt;/span&gt;
+  &lt;span class=&quot;p&quot;&gt;});&lt;/span&gt;
+&lt;span class=&quot;p&quot;&gt;});&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+
+&lt;p&gt;这里也定义队列的原因：接受者可能比发送者先开始执行。我们需要确保当接受者处理queue的时候，queue是存在的。
+由于消息的发送是异步的，我们需要提供一个回调，这样，当RabbitMQ发送消息给我们的消费者时，回调会执行。这个也是Channel.consume做的事情。&lt;/p&gt;
+&lt;div class=&quot;language-javascript highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;nx&quot;&gt;console&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;nx&quot;&gt;log&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot; [*] Waiting for messages in %s. To exit press CTRL+C&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;nx&quot;&gt;q&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;);&lt;/span&gt;
+&lt;span class=&quot;nx&quot;&gt;ch&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;nx&quot;&gt;consume&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;nx&quot;&gt;q&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;kd&quot;&gt;function&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;nx&quot;&gt;msg&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;
+  &lt;span class=&quot;nx&quot;&gt;console&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;nx&quot;&gt;log&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot; [x] Received %s&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;nx&quot;&gt;msg&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;nx&quot;&gt;content&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;nx&quot;&gt;toString&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;());&lt;/span&gt;
+&lt;span class=&quot;p&quot;&gt;},&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;&lt;span class=&quot;na&quot;&gt;noAck&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;kc&quot;&gt;true&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;});&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+&lt;p&gt;最终代码参考：&lt;a href=&quot;https://github.com/rabbitmq/rabbitmq-tutorials/blob/master/javascript-nodejs/src/receive.js&quot;&gt;receive.js&lt;/a&gt;&lt;/p&gt;
+
+&lt;h3 id=&quot;运行代码&quot;&gt;运行代码&lt;/h3&gt;
+
+&lt;div class=&quot;language-javascript highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;c1&quot;&gt;// 先执行send.js&lt;/span&gt;
+&lt;span class=&quot;nx&quot;&gt;$&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;/&lt;/span&gt;&lt;span class=&quot;nx&quot;&gt;send&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;nx&quot;&gt;js&lt;/span&gt;
+&lt;span class=&quot;c1&quot;&gt;// 后执行receive.js&lt;/span&gt;
+&lt;span class=&quot;nx&quot;&gt;$&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;/&lt;/span&gt;&lt;span class=&quot;nx&quot;&gt;receive&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;nx&quot;&gt;js&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+
+&lt;p&gt;最终结果如图：
+&lt;img src=&quot;http://images2015.cnblogs.com/blog/1030776/201701/1030776-20170116114515380-306648911.jpg&quot; alt=&quot;&quot; /&gt;&lt;/p&gt;
+
+&lt;h2 id=&quot;开源信息&quot;&gt;开源信息&lt;/h2&gt;
+&lt;ul&gt;
+  &lt;li&gt;腾讯NOW直播前端工程化解决方案feflow正式开源啦~： &lt;a href=&quot;https://github.com/cpselvis/feflow-cli&quot;&gt;https://github.com/cpselvis/feflow-cli&lt;/a&gt;&lt;/li&gt;
+&lt;/ul&gt;
+</description>
+        <pubDate>Mon, 16 Jan 2017 10:46:24 +0800</pubDate>
+        <link>http://localhost:4000/2017/01/%E5%9C%A8Node.js%E4%B8%AD%E4%BD%BF%E7%94%A8RabbitMQ%E7%B3%BB%E5%88%97%E4%B8%80-Hello-world/</link>
+        <guid isPermaLink="true">http://localhost:4000/2017/01/%E5%9C%A8Node.js%E4%B8%AD%E4%BD%BF%E7%94%A8RabbitMQ%E7%B3%BB%E5%88%97%E4%B8%80-Hello-world/</guid>
+        
+        
+      </item>
+    
+      <item>
+        <title>理解Javascript的状态容器Redux</title>
+        <description>&lt;h3 id=&quot;redux要解决什么问题&quot;&gt;Redux要解决什么问题？&lt;/h3&gt;
+&lt;p&gt;随着 JavaScript 单页应用开发日趋复杂，&lt;strong&gt;JavaScript 需要管理比任何时候都要多的 state （状态）&lt;/strong&gt;。 这些 state 可能包括服务器响应、缓存数据、本地生成尚未持久化到服务器的数据，也包括 UI 状态，如激活的路由，被选中的标签，是否显示加载动效或者分页器等等。
+管理不断变化的 state 非常困难。如果一个 model 的变化会引起另一个 model 变化，那么当 view 变化时，就可能引起对应 model 以及另一个 model 的变化，依次地，可能会引起另一个 view 的变化。直至你搞不清楚到底发生了什么。&lt;strong&gt;state 在什么时候，由于什么原因，如何变化已然不受控制。&lt;/strong&gt; 当系统变得错综复杂的时候，想重现问题或者添加新功能就会变得举步维艰。
+&lt;a href=&quot;http://redux.js.org/&quot;&gt;Redux&lt;/a&gt;的设计借鉴&lt;a href=&quot;https://facebook.github.io/flux/&quot;&gt;Flux&lt;/a&gt;、 &lt;a href=&quot;http://elm-lang.org/&quot;&gt;Elm&lt;/a&gt;、&lt;a href=&quot;https://facebook.github.io/immutable-js&quot;&gt;Immutable&lt;/a&gt;，它的出现就是为了解决state里的数据问题。Redux和Flux的主要区别是Redux里面是单一的数据源设计，而Flux（或者Reflux）里面有多个数据源。&lt;/p&gt;
+
+&lt;h3 id=&quot;redux是如何工作的&quot;&gt;Redux是如何工作的？&lt;/h3&gt;
+&lt;p&gt;我们知道，在React中，数据在组件中是单向流动的。数据从一个方向父组件流向子组件(通过props)，由于这个特征，两个非父子关系的组件（或者称作兄弟组件）之间的通信并不是那么清楚。
+React并不建议直接采用组件到组件的通信方式，尽管它有一些特性可以支持这么做(比如先将子组件的值传递给父组件，然后再由父组件在分发给指定的子组件)。这被很多人认为是糟糕的实践方式，因为这样的方式容易出错而且会让代码向“拉面”一样不容易理解。
+当然React也没有直接建议如何去处理这种情形，以下是&lt;a href=&quot;https://facebook.github.io/react/tips/communicate-between-components.html&quot;&gt;React的文档&lt;/a&gt;中关于这部分的描述：&lt;/p&gt;
+&lt;blockquote&gt;
+  &lt;p&gt;对于非父子关系的组件，你可以自己建立一个全局的事件系统，Flux的模式也是一种可行的方式。&lt;/p&gt;
+&lt;/blockquote&gt;
+
+&lt;p&gt;Redux的出现就让这个问题的解决变得更加方便了。Redux提供一种存储整个应用状态到一个地方的解决方案（可以理解为统一状态层），称为“store”，组件将状态的变化转发通知(dispatch)给store，而不是直接通知其它的组件。组件内部依赖的state的变化情况可以通过订阅store来实现。
+使用Redux，所有的组件都从store里面获取它们依赖的state，同时也需要将state的变化告知store。组件不需要关注在这个store里面其它组件的state的变化情况，Redux让数据流变得更加简单。这种思想最初来自Flux，它是一种和React相同的单向数据流的设计模式。
+&lt;img src=&quot;http://images2015.cnblogs.com/blog/1030776/201701/1030776-20170112022416166-631450629.jpg&quot; alt=&quot;&quot; /&gt;&lt;/p&gt;
+
+&lt;h3 id=&quot;redux的核心设计理念&quot;&gt;Redux的核心设计理念&lt;/h3&gt;
+&lt;p&gt;Redux有三大原则&lt;/p&gt;
+&lt;ul&gt;
+  &lt;li&gt;单一数据源，整个应用的 state 被储存在一棵 object tree 中，并且这个 object tree 只存在于唯一一个 store 中&lt;/li&gt;
+  &lt;li&gt;State 是只读的，惟一改变 state 的方法就是触发 action，action 是一个用于描述已发生事件的普通对象。&lt;/li&gt;
+  &lt;li&gt;使用纯函数来执行修改，为了描述 action 如何改变 state tree ，你需要编写 reducers。&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;单一数据源的设计让React的组件之间的通信更加方便，同时也便于状态的统一管理。
+根据Redux的文档，状态变化的唯一方式是触发一个action(一个可以描述发生了什么的对象)，这意味着我们不能直接的去修改状态，取而代之的是我们可以通过转发action去告诉store我们有改变状态的意图。store对象提供了非常少的API，仅仅只有4个方法：&lt;/p&gt;
+&lt;div class=&quot;language-javascript highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;nx&quot;&gt;store&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;nx&quot;&gt;dispatch&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;nx&quot;&gt;action&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+&lt;span class=&quot;nx&quot;&gt;store&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;nx&quot;&gt;subscribe&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;nx&quot;&gt;listener&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+&lt;span class=&quot;nx&quot;&gt;store&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;nx&quot;&gt;getState&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;()&lt;/span&gt;
+&lt;span class=&quot;nx&quot;&gt;replaceReducer&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;nx&quot;&gt;nextReducer&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+&lt;p&gt;通过这几个API不难发现，store并没有直接提供setState()方法。
+另外，由于它大量使用 pure function 和 plain object 等概念(reducer 和 action creator 是 pure function，state 和 action 是 plain object)这对于项目的稳定性会是非常好的保证。&lt;/p&gt;
+
+&lt;h3 id=&quot;理解actionreducer&quot;&gt;理解Action、Reducer&lt;/h3&gt;
+&lt;p&gt;一个action的例子：&lt;/p&gt;
+&lt;div class=&quot;language-javascript highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;kd&quot;&gt;var&lt;/span&gt; &lt;span class=&quot;nx&quot;&gt;action&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;
+  &lt;span class=&quot;na&quot;&gt;type&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;s1&quot;&gt;'ADD_USER'&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt;
+  &lt;span class=&quot;na&quot;&gt;user&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;&lt;span class=&quot;na&quot;&gt;name&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;s1&quot;&gt;'Dan'&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;
+&lt;span class=&quot;p&quot;&gt;};&lt;/span&gt;
+
+&lt;span class=&quot;c1&quot;&gt;// 假设store对象已经通过Redux.createStore()创建&lt;/span&gt;
+&lt;span class=&quot;nx&quot;&gt;store&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;nx&quot;&gt;dispatch&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;nx&quot;&gt;action&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;);&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+&lt;p&gt;这段代码中，通过dispatch() 方法将action传递给了store。Action 本质上是 JavaScript 普通对象。我们约定，action 内必须使用一个字符串类型的 type 字段来表示将要执行的动作。多数情况下，type 会被定义成字符串常量。当应用规模越来越大时，建议使用单独的模块或文件来存放 action。&lt;/p&gt;
+&lt;div class=&quot;language-javascript highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;kr&quot;&gt;import&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt; &lt;span class=&quot;nx&quot;&gt;ADD_TODO&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;nx&quot;&gt;REMOVE_TODO&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;}&lt;/span&gt; &lt;span class=&quot;nx&quot;&gt;from&lt;/span&gt; &lt;span class=&quot;s1&quot;&gt;'../actionTypes'&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+
+&lt;p&gt;前面描述过，Redux不允许直接去改变state，必须通过转发action来告诉store有这个意图要去改变这个状态。reducer正是扮演处理转发过来的action的意图的函数并且可以改变状态的角色。一个reducer接受当前的state作为参数，通过返回新的state去改变原有的state:&lt;/p&gt;
+&lt;div class=&quot;language-javascript highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;kd&quot;&gt;var&lt;/span&gt; &lt;span class=&quot;nx&quot;&gt;someReducer&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;kd&quot;&gt;function&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;nx&quot;&gt;state&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;nx&quot;&gt;action&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;
+  &lt;span class=&quot;p&quot;&gt;...&lt;/span&gt;
+  &lt;span class=&quot;k&quot;&gt;return&lt;/span&gt; &lt;span class=&quot;nx&quot;&gt;state&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;;&lt;/span&gt;
+&lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+&lt;p&gt;由于reducer是纯函数，需要注意：&lt;/p&gt;
+&lt;ul&gt;
+  &lt;li&gt;不允许在reducer函数内部进行网络调用或者数据库查询操作&lt;/li&gt;
+  &lt;li&gt;不能改变它的参数
+这样做的好处是：每次调用同样的一个函数，传入相同的值可以得到相同的结果。对系统的其它部分也不会产生副作用。&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;h3 id=&quot;第一个redux-store&quot;&gt;第一个Redux store&lt;/h3&gt;
+&lt;p&gt;使用Redux.createStore()来创建一个store，并且将所有的reducers作为参数传递给它，此处以一个reducer为例子：&lt;/p&gt;
+&lt;div class=&quot;language-javascript highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;kd&quot;&gt;var&lt;/span&gt; &lt;span class=&quot;nx&quot;&gt;userReducer&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;kd&quot;&gt;function&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;nx&quot;&gt;state&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;[],&lt;/span&gt; &lt;span class=&quot;nx&quot;&gt;action&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;
+  &lt;span class=&quot;k&quot;&gt;if&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;nx&quot;&gt;action&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;nx&quot;&gt;type&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;===&lt;/span&gt; &lt;span class=&quot;s1&quot;&gt;'ADD_USER'&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;
+    &lt;span class=&quot;kd&quot;&gt;var&lt;/span&gt; &lt;span class=&quot;nx&quot;&gt;newState&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;nx&quot;&gt;state&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;nx&quot;&gt;concat&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;([&lt;/span&gt;&lt;span class=&quot;nx&quot;&gt;action&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;nx&quot;&gt;user&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;]);&lt;/span&gt;
+    &lt;span class=&quot;k&quot;&gt;return&lt;/span&gt; &lt;span class=&quot;nx&quot;&gt;newState&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;;&lt;/span&gt;
+  &lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;
+  &lt;span class=&quot;k&quot;&gt;return&lt;/span&gt; &lt;span class=&quot;nx&quot;&gt;state&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;;&lt;/span&gt;
+&lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;
+
+&lt;span class=&quot;c1&quot;&gt;// 创建一个store，并且将reducer作为参数传递给它&lt;/span&gt;
+&lt;span class=&quot;kd&quot;&gt;var&lt;/span&gt; &lt;span class=&quot;nx&quot;&gt;store&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;nx&quot;&gt;Redux&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;nx&quot;&gt;createStore&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;nx&quot;&gt;userReducer&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;);&lt;/span&gt;
+
+&lt;span class=&quot;c1&quot;&gt;// 将action传递给store，告诉store我们有改变状态的意向&lt;/span&gt;
+&lt;span class=&quot;nx&quot;&gt;store&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;nx&quot;&gt;dispatch&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;({&lt;/span&gt;
+  &lt;span class=&quot;na&quot;&gt;type&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;s1&quot;&gt;'ADD_USER'&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt;
+  &lt;span class=&quot;na&quot;&gt;user&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;&lt;span class=&quot;na&quot;&gt;name&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;s1&quot;&gt;'cpselvis'&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;
+&lt;span class=&quot;p&quot;&gt;});&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+&lt;p&gt;上述代码运行后发生的事情：&lt;/p&gt;
+&lt;ul&gt;
+  &lt;li&gt;Store被创建&lt;/li&gt;
+  &lt;li&gt;reducer确定初始的state的值是空数组&lt;/li&gt;
+  &lt;li&gt;action被转发给store&lt;/li&gt;
+  &lt;li&gt;reducer将newUser添加到state中，并且将它返回，更新store&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;通过这段代码可以发现：reducer函数实际上被执行了2次，一次是store创建的时候，一次是action被转发之后。另外需要注意：Redux希望reducer函数总是返回一个新的状态。这时的结果：&lt;/p&gt;
+&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;store.getState();  // =&amp;gt; [{name: 'cpselvis'}]
+&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+
+&lt;p&gt;通过这个例子，可以总结出Redux的工作流程如图：
+&lt;img src=&quot;http://images2015.cnblogs.com/blog/1030776/201701/1030776-20170112135009463-1406392687.jpg&quot; alt=&quot;&quot; /&gt;&lt;/p&gt;
+
+&lt;p&gt;到这里，component -&amp;gt; action -&amp;gt; store -&amp;gt; reducer -&amp;gt; state 的单向数据流的问题就讲完了。概括的说就是：React组件里面获取了数据之后（比如ajax请求），然后创建一个action通知store我有这个想改变state的意图，然后reducers（一个action可能对应多个reducer，可以理解为action为订阅的主题，可能有多个订阅者）来处理这个意图并且返回新的state，接下来store会收集到所有的reducer的state，最后更新state。&lt;/p&gt;
+</description>
+        <pubDate>Thu, 12 Jan 2017 08:16:24 +0800</pubDate>
+        <link>http://localhost:4000/2017/01/%E7%90%86%E8%A7%A3Javascript%E7%9A%84%E7%8A%B6%E6%80%81%E5%AE%B9%E5%99%A8Redux/</link>
+        <guid isPermaLink="true">http://localhost:4000/2017/01/%E7%90%86%E8%A7%A3Javascript%E7%9A%84%E7%8A%B6%E6%80%81%E5%AE%B9%E5%99%A8Redux/</guid>
         
         
       </item>

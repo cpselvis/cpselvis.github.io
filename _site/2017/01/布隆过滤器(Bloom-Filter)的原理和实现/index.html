@@ -1,0 +1,341 @@
+<!DOCTYPE html>
+<html>
+
+  <head>
+  <meta charset="utf-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+
+  <title>布隆过滤器(Bloom Filter)的原理和实现</title>
+  <meta name="description" content="什么情况下需要布隆过滤器？先来看几个比较常见的例子  字处理软件中，需要检查一个英语单词是否拼写正确  在 FBI，一个嫌疑人的名字是否已经在嫌疑名单上  在网络爬虫里，一个网址是否被访问过  yahoo, gmail等邮箱垃圾邮件过滤功能">
+  <meta name="author" content="Wei Wang">
+
+  <meta name="twitter:card" content="summary">
+  <meta name="twitter:title" content="布隆过滤器(Bloom Filter)的原理和实现">
+  <meta name="twitter:description" content="什么情况下需要布隆过滤器？先来看几个比较常见的例子  字处理软件中，需要检查一个英语单词是否拼写正确  在 FBI，一个嫌疑人的名字是否已经在嫌疑名单上  在网络爬虫里，一个网址是否被访问过  yahoo, gmail等邮箱垃圾邮件过滤功能">
+  
+  <meta property="og:type" content="article">
+  <meta property="og:title" content="布隆过滤器(Bloom Filter)的原理和实现">
+  <meta property="og:description" content="什么情况下需要布隆过滤器？先来看几个比较常见的例子  字处理软件中，需要检查一个英语单词是否拼写正确  在 FBI，一个嫌疑人的名字是否已经在嫌疑名单上  在网络爬虫里，一个网址是否被访问过  yahoo, gmail等邮箱垃圾邮件过滤功能">
+  
+  <link rel="icon" type="image/png" href="/assets/images/favicon.png" />
+  <link href="/assets/images/favicon.png" rel="shortcut icon" type="image/png">
+  
+  <link rel="stylesheet" href="/css/main.css">
+  <link href="//netdna.bootstrapcdn.com/font-awesome/4.1.0/css/font-awesome.min.css" rel="stylesheet">
+
+  <link rel="canonical" href="http://localhost:4000/2017/01/%E5%B8%83%E9%9A%86%E8%BF%87%E6%BB%A4%E5%99%A8(Bloom-Filter)%E7%9A%84%E5%8E%9F%E7%90%86%E5%92%8C%E5%AE%9E%E7%8E%B0/">
+  <link rel="alternate" type="application/rss+xml" title="cpselvis" href="http://localhost:4000/feed.xml">
+  
+  <meta name="google-site-verification" content="1-1ZlHoRvM0T2FqPbW2S-qLgYXN6rsn52kErlMPd_gw" />
+  
+</head>
+
+
+  <body>
+
+    <span class="mobile btn-mobile-menu">
+        <i class="fa fa-list btn-mobile-menu__icon"></i>
+        <i class="fa fa-angle-up btn-mobile-close__icon hidden"></i>
+    </span>
+    
+    <header class="panel-cover panel-cover--collapsed" style="background-image: url('/assets/images/background-cover.jpg')">
+  <div class="panel-main">
+
+    <div class="panel-main__inner panel-inverted">
+    <div class="panel-main__content">
+
+        <a href="/#blog" title="前往 cpselvis 的主页" class="blog-button"><img src="/assets/images/avatar.jpg" width="80" alt="cpselvis logo" class="panel-cover__logo logo" /></a>
+        <h1 class="panel-cover__title panel-title"><a href="/#blog" title="link to homepage for cpselvis" class="blog-button">cpselvis</a></h1>
+        
+        <span class="panel-cover__subtitle panel-subtitle">落花无言,人淡如菊,心素如简</span>
+        
+        <hr class="panel-cover__divider" />
+        <p class="panel-cover__description">嗨，我是程柳锋 (@cpselvis)，一名来自中国的 web 开发者。现居深圳，就职于 腾讯。目前负责研发规范和工程化建设，曾在OSC源创会上做过分享。</p>
+        <hr class="panel-cover__divider panel-cover__divider--secondary" />
+        
+        
+        
+        <div class="navigation-wrapper">
+          <div>
+            <nav class="cover-navigation cover-navigation--primary">
+              <ul class="navigation">
+                <li class="navigation__item"><a href="/#blog" title="Visit blog" class="blog-button">博客</a></li>
+                
+                  <li class="navigation__item"><a href="https://cpselvis.github.io/" target="_blank" title="My Projects">首页</a></li>
+                
+              </ul>
+            </nav>
+          </div>
+          
+          <div><nav class="cover-navigation navigation--social">
+  <ul class="navigation">
+
+  
+  <!-- Weibo -->
+  <li class="navigation__item">
+    <a href="http://weibo.com/cpselvis" title="@cpselvis 的微博" target="_blank">
+      <i class='social fa fa-weibo'></i>
+      <span class="label">Weibo</span>
+    </a>
+  </li>
+  
+
+  
+  <!-- Github -->
+  <li class="navigation__item">
+    <a href="https://github.com/cpselvis" title="@cpselvis 的 Github" target="_blank">
+      <i class='social fa fa-github'></i>
+      <span class="label">Github</span>
+    </a>
+  </li>
+  
+  
+  
+  <!-- Twitter -->
+  <li class="navigation__item">
+    <a href="http://twitter.com/cpselvis" title="@cpselvis" target="_blank">
+      <i class='social fa fa-twitter'></i>
+      <span class="label">Twitter</span>
+    </a>
+  </li>
+  
+
+  
+  <!-- Google Plus -->
+  <li class="navigation__item">
+    <a href="https://plus.google.com/104634663101299635957" rel="author" title="Google+" target="_blank">
+      <i class='social fa fa-google-plus-square'></i>
+      <span class="label">Google Plus</span>
+    </a>
+  </li>
+  
+
+  <!-- RSS -->
+  <li class="navigation__item">
+    <a href="/feed.xml" rel="author" title="RSS" target="_blank">
+      <i class='social fa fa-rss'></i>
+      <span class="label">RSS</span>
+    </a>
+  </li>
+
+  
+  <!-- Email -->
+  <li class="navigation__item">
+    <a href="mailto:cpselvis@gmail.com" title="Contact me">
+      <i class='social fa fa-envelope'></i>
+      <span class="label">Email</span>
+    </a>
+  </li>
+  
+
+  </ul>
+</nav>
+</div>
+        </div>
+      </div>
+    </div>
+    
+    
+    <div class="panel-cover--overlay cover-blue"></div>
+    
+  </div>
+</header>
+
+
+    <div class="content-wrapper">
+        <div class="content-wrapper__inner">
+            <article class="post-container post-container--single" itemscope itemtype="http://schema.org/BlogPosting">
+  <header class="post-header">
+    <div class="post-meta">
+      <time datetime="2017-01-09 15:54:24 +0800" itemprop="datePublished" class="post-meta__date date">2017-01-09</time> &#8226; <span class="post-meta__tags tags"></span>
+    </div>
+    <h1 class="post-title">布隆过滤器(Bloom Filter)的原理和实现</h1>
+  </header>
+
+  <section class="post">
+    <h3 id="什么情况下需要布隆过滤器">什么情况下需要布隆过滤器？</h3>
+<p>先来看几个比较常见的例子</p>
+<ul>
+  <li>字处理软件中，需要检查一个英语单词是否拼写正确</li>
+  <li>在 FBI，一个嫌疑人的名字是否已经在嫌疑名单上</li>
+  <li>在网络爬虫里，一个网址是否被访问过</li>
+  <li>yahoo, gmail等邮箱垃圾邮件过滤功能</li>
+</ul>
+
+<p>这几个例子有一个共同的特点： <strong>如何判断一个元素是否存在一个集合中？</strong></p>
+
+<h3 id="常规思路">常规思路</h3>
+<ul>
+  <li>数组</li>
+  <li>链表</li>
+  <li>树、平衡二叉树、Trie</li>
+  <li>Map (红黑树)</li>
+  <li>哈希表</li>
+</ul>
+
+<p>虽然上面描述的这几种数据结构配合常见的排序、二分搜索可以快速高效的处理绝大部分判断元素是否存在集合中的需求。但是当集合里面的元素数量足够大，如果有500万条记录甚至1亿条记录呢？这个时候常规的数据结构的问题就凸显出来了。数组、链表、树等数据结构会存储元素的内容，一旦数据量过大，消耗的内存也会呈现线性增长，最终达到瓶颈。有的同学可能会问，哈希表不是效率很高吗？查询效率可以达到O(1)。但是哈希表需要消耗的内存依然很高。使用哈希表存储一亿 个垃圾 email 地址的消耗？哈希表的做法：首先，哈希函数将一个email地址映射成8字节信息指纹；考虑到哈希表存储效率通常小于50%（哈希冲突）；因此消耗的内存：8 * 2 * 1亿 字节 = 1.6G 内存，普通计算机是无法提供如此大的内存。这个时候，布隆过滤器（Bloom Filter）就应运而生。在继续介绍布隆过滤器的原理时，先讲解下关于哈希函数的预备知识。</p>
+
+<h3 id="哈希函数">哈希函数</h3>
+<p>哈希函数的概念是：将任意大小的数据转换成特定大小的数据的函数，转换后的数据称为哈希值或哈希编码。下面是一幅示意图：</p>
+
+<p><img src="http://images2015.cnblogs.com/blog/1030776/201701/1030776-20170106142012816-1867044021.png" alt="" /></p>
+
+<p>可以明显的看到，原始数据经过哈希函数的映射后称为了一个个的哈希编码，数据得到压缩。哈希函数是实现哈希表和布隆过滤器的基础。</p>
+
+<h3 id="布隆过滤器介绍">布隆过滤器介绍</h3>
+<ul>
+  <li>巴顿.布隆于一九七零年提出</li>
+  <li>一个很长的二进制向量 （位数组）</li>
+  <li>一系列随机函数 (哈希)</li>
+  <li>空间效率和查询效率高</li>
+  <li>有一定的误判率（哈希表是精确匹配）</li>
+</ul>
+
+<h3 id="布隆过滤器原理">布隆过滤器原理</h3>
+<p>布隆过滤器（Bloom Filter）的核心实现是一个超大的位数组和几个哈希函数。假设位数组的长度为m，哈希函数的个数为k</p>
+
+<p><img src="http://images2015.cnblogs.com/blog/1030776/201701/1030776-20170106143141784-1475031003.png" alt="" /></p>
+
+<p>以上图为例，具体的操作流程：假设集合里面有3个元素{x, y, z}，哈希函数的个数为3。首先将位数组进行初始化，将里面每个位都设置位0。对于集合里面的每一个元素，将元素依次通过3个哈希函数进行映射，每次映射都会产生一个哈希值，这个值对应位数组上面的一个点，然后将位数组对应的位置标记为1。查询W元素是否存在集合中的时候，同样的方法将W通过哈希映射到位数组上的3个点。如果3个点的其中有一个点不为1，则可以判断该元素一定不存在集合中。反之，如果3个点都为1，则该元素可能存在集合中。注意：此处不能判断该元素是否一定存在集合中，可能存在一定的误判率。可以从图中可以看到：假设某个元素通过映射对应下标为4，5，6这3个点。虽然这3个点都为1，但是很明显这3个点是不同元素经过哈希得到的位置，因此这种情况说明元素虽然不在集合中，也可能对应的都是1，这是误判率存在的原因。</p>
+
+<h3 id="布隆过滤器添加元素">布隆过滤器添加元素</h3>
+<ul>
+  <li>将要添加的元素给k个哈希函数</li>
+  <li>得到对应于位数组上的k个位置</li>
+  <li>将这k个位置设为1</li>
+</ul>
+
+<h3 id="布隆过滤器查询元素">布隆过滤器查询元素</h3>
+<ul>
+  <li>将要查询的元素给k个哈希函数</li>
+  <li>得到对应于位数组上的k个位置</li>
+  <li>如果k个位置有一个为0，则肯定不在集合中</li>
+  <li>如果k个位置全部为1，则可能在集合中</li>
+</ul>
+
+<h3 id="布隆过滤器实现">布隆过滤器实现</h3>
+<p>下面给出python的实现，使用murmurhash算法</p>
+<div class="language-python highlighter-rouge"><pre class="highlight"><code><span class="kn">import</span> <span class="nn">mmh3</span>
+<span class="kn">from</span> <span class="nn">bitarray</span> <span class="kn">import</span> <span class="n">bitarray</span>
+
+
+<span class="c"># zhihu_crawler.bloom_filter</span>
+
+<span class="c"># Implement a simple bloom filter with murmurhash algorithm.</span>
+<span class="c"># Bloom filter is used to check wether an element exists in a collection, and it has a good performance in big data situation.</span>
+<span class="c"># It may has positive rate depend on hash functions and elements count.</span>
+
+
+
+<span class="n">BIT_SIZE</span> <span class="o">=</span> <span class="mi">5000000</span>
+
+<span class="k">class</span> <span class="nc">BloomFilter</span><span class="p">:</span>
+
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="c"># Initialize bloom filter, set size and all bits to 0</span>
+        <span class="n">bit_array</span> <span class="o">=</span> <span class="n">bitarray</span><span class="p">(</span><span class="n">BIT_SIZE</span><span class="p">)</span>
+        <span class="n">bit_array</span><span class="o">.</span><span class="n">setall</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">bit_array</span> <span class="o">=</span> <span class="n">bit_array</span>
+
+    <span class="k">def</span> <span class="nf">add</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">url</span><span class="p">):</span>
+        <span class="c"># Add a url, and set points in bitarray to 1 (Points count is equal to hash funcs count.)</span>
+        <span class="c"># Here use 7 hash functions.</span>
+        <span class="n">point_list</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_postions</span><span class="p">(</span><span class="n">url</span><span class="p">)</span>
+
+        <span class="k">for</span> <span class="n">b</span> <span class="ow">in</span> <span class="n">point_list</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">bit_array</span><span class="p">[</span><span class="n">b</span><span class="p">]</span> <span class="o">=</span> <span class="mi">1</span>
+
+    <span class="k">def</span> <span class="nf">contains</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">url</span><span class="p">):</span>
+        <span class="c"># Check if a url is in a collection</span>
+        <span class="n">point_list</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_postions</span><span class="p">(</span><span class="n">url</span><span class="p">)</span>
+
+        <span class="n">result</span> <span class="o">=</span> <span class="bp">True</span>
+        <span class="k">for</span> <span class="n">b</span> <span class="ow">in</span> <span class="n">point_list</span><span class="p">:</span>
+            <span class="n">result</span> <span class="o">=</span> <span class="n">result</span> <span class="ow">and</span> <span class="bp">self</span><span class="o">.</span><span class="n">bit_array</span><span class="p">[</span><span class="n">b</span><span class="p">]</span>
+
+        <span class="k">return</span> <span class="n">result</span>
+
+    <span class="k">def</span> <span class="nf">get_postions</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">url</span><span class="p">):</span>
+        <span class="c"># Get points positions in bit vector.</span>
+        <span class="n">point1</span> <span class="o">=</span> <span class="n">mmh3</span><span class="o">.</span><span class="nb">hash</span><span class="p">(</span><span class="n">url</span><span class="p">,</span> <span class="mi">41</span><span class="p">)</span> <span class="o">%</span> <span class="n">BIT_SIZE</span>
+        <span class="n">point2</span> <span class="o">=</span> <span class="n">mmh3</span><span class="o">.</span><span class="nb">hash</span><span class="p">(</span><span class="n">url</span><span class="p">,</span> <span class="mi">42</span><span class="p">)</span> <span class="o">%</span> <span class="n">BIT_SIZE</span>
+        <span class="n">point3</span> <span class="o">=</span> <span class="n">mmh3</span><span class="o">.</span><span class="nb">hash</span><span class="p">(</span><span class="n">url</span><span class="p">,</span> <span class="mi">43</span><span class="p">)</span> <span class="o">%</span> <span class="n">BIT_SIZE</span>
+        <span class="n">point4</span> <span class="o">=</span> <span class="n">mmh3</span><span class="o">.</span><span class="nb">hash</span><span class="p">(</span><span class="n">url</span><span class="p">,</span> <span class="mi">44</span><span class="p">)</span> <span class="o">%</span> <span class="n">BIT_SIZE</span>
+        <span class="n">point5</span> <span class="o">=</span> <span class="n">mmh3</span><span class="o">.</span><span class="nb">hash</span><span class="p">(</span><span class="n">url</span><span class="p">,</span> <span class="mi">45</span><span class="p">)</span> <span class="o">%</span> <span class="n">BIT_SIZE</span>
+        <span class="n">point6</span> <span class="o">=</span> <span class="n">mmh3</span><span class="o">.</span><span class="nb">hash</span><span class="p">(</span><span class="n">url</span><span class="p">,</span> <span class="mi">46</span><span class="p">)</span> <span class="o">%</span> <span class="n">BIT_SIZE</span>
+        <span class="n">point7</span> <span class="o">=</span> <span class="n">mmh3</span><span class="o">.</span><span class="nb">hash</span><span class="p">(</span><span class="n">url</span><span class="p">,</span> <span class="mi">47</span><span class="p">)</span> <span class="o">%</span> <span class="n">BIT_SIZE</span>
+
+
+        <span class="k">return</span> <span class="p">[</span><span class="n">point1</span><span class="p">,</span> <span class="n">point2</span><span class="p">,</span> <span class="n">point3</span><span class="p">,</span> <span class="n">point4</span><span class="p">,</span> <span class="n">point5</span><span class="p">,</span> <span class="n">point6</span><span class="p">,</span> <span class="n">point7</span><span class="p">]</span>
+</code></pre>
+</div>
+<p>源码地址：https://github.com/cpselvis/zhihu-crawler/blob/master/bloom_filter.py</p>
+
+  </section>
+</article>
+
+<section class="read-more">
+   
+   
+   <div class="read-more-item">
+       <span class="read-more-item-dim">最近的文章</span>
+       <h2 class="post-list__post-title post-title"><a href="/2017/01/%E5%B8%B8%E8%A7%81%E7%BC%93%E5%AD%98%E7%AE%97%E6%B3%95%E5%92%8CLRU%E7%9A%84c++%E5%AE%9E%E7%8E%B0/" title="link to 常见缓存算法和LRU的c++实现">常见缓存算法和LRU的c++实现</a></h2>
+       <p class="excerpt">对于web开发而言，缓存必不可少，也是提高性能最常用的方式。无论是浏览器缓存(如果是chrome浏览器，可以通过chrome:://cache查看)，还是服务端的缓存(通过memcached或者redis等内存数据库)。缓存不仅可以加速用户的访问，同时也可以降低服务器的负载和压力。那么，了解常见的缓存淘汰算法的策略和原理就显得特别重要。常见的缓存算法  LRU (Least recently used) 最近最少使用，如果数据最近被访问过，那么将来被访问的几率也更高。  LFU (Leas...&hellip;</p>
+       <div class="post-list__meta"><time datetime="2017-01-11 07:14:24 +0800" class="post-list__meta--date date">2017-01-11</time> &#8226; <span class="post-list__meta--tags tags"></span><a class="btn-border-small" href=/2017/01/%E5%B8%B8%E8%A7%81%E7%BC%93%E5%AD%98%E7%AE%97%E6%B3%95%E5%92%8CLRU%E7%9A%84c++%E5%AE%9E%E7%8E%B0/>继续阅读</a></div>
+   </div>
+   
+   
+   
+</section>
+
+<section class="post-comments">
+  
+    <div id="disqus_thread"></div>
+    <script>
+    
+    var disqus_config = function () {
+        this.page.url = "http://localhost:4000/2017/01/%E5%B8%83%E9%9A%86%E8%BF%87%E6%BB%A4%E5%99%A8(Bloom-Filter)%E7%9A%84%E5%8E%9F%E7%90%86%E5%92%8C%E5%AE%9E%E7%8E%B0/";
+        this.page.identifier = "/2017/01/%E5%B8%83%E9%9A%86%E8%BF%87%E6%BB%A4%E5%99%A8(Bloom-Filter)%E7%9A%84%E5%8E%9F%E7%90%86%E5%92%8C%E5%AE%9E%E7%8E%B0/";
+    };
+
+    var disqus_shortname = 'vno-jekyll';
+    
+    (function() { // DON'T EDIT BELOW THIS LINE
+        var d = document, s = d.createElement('script');
+        s.src = '//' + disqus_shortname + '.disqus.com/embed.js';
+        s.setAttribute('data-timestamp', +new Date());
+            (d.head || d.body).appendChild(s);
+        })();
+    </script>
+    <noscript>要查看<a href="http://disqus.com/?ref_noscript"> Disqus </a>评论，请启用 JavaScript</noscript>
+    
+  
+  
+  
+  
+</section>
+
+
+            <section class="footer">
+    <footer>
+    	<span class="footer__copyright">本站点采用<a href="http://creativecommons.org/licenses/by-nc-sa/4.0/">知识共享 署名-非商业性使用-相同方式共享 4.0 国际 许可协议</a></span>
+        <span class="footer__copyright">由 <a href="https://jekyllrb.com">Jekyll</a> 于 2017-10-08 生成，感谢 <a href="https://www.digitalocean.com/?refcode=30ed2d146762">Digital Ocean</a> 为本站提供稳定的 VPS 服务</span>
+        <span class="footer__copyright">本站由 <a href="https://cpselvis.github.io">@cpselvis</a> 创建，采用 <a href="https://github.com/onevcat/vno-jekyll">Vno - Jekyll</a> 作为主题，您可以在 GitHub 找到<a href="https://github.com/onevcat/OneV-s-Den">本站源码</a> - &copy; 2017</span>
+    </footer>
+</section>
+
+        </div>
+    </div>
+    
+    <script type="text/javascript" src="//code.jquery.com/jquery-1.11.3.min.js"></script>
+
+<script type="text/javascript" src="/js/main.js"></script>
+
+
+
+    
+  </body>
+
+</html>

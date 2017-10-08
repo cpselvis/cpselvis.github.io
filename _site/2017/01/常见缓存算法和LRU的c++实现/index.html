@@ -1,0 +1,369 @@
+<!DOCTYPE html>
+<html>
+
+  <head>
+  <meta charset="utf-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+
+  <title>常见缓存算法和LRU的c++实现</title>
+  <meta name="description" content="对于web开发而言，缓存必不可少，也是提高性能最常用的方式。无论是浏览器缓存(如果是chrome浏览器，可以通过chrome:://cache查看)，还是服务端的缓存(通过memcached或者redis等内存数据库)。缓存不仅可以加速用户的访问，同时也可以降低服务器的负载和压力。那么，了解常见的缓存淘汰算法的策...">
+  <meta name="author" content="Wei Wang">
+
+  <meta name="twitter:card" content="summary">
+  <meta name="twitter:title" content="常见缓存算法和LRU的c++实现">
+  <meta name="twitter:description" content="对于web开发而言，缓存必不可少，也是提高性能最常用的方式。无论是浏览器缓存(如果是chrome浏览器，可以通过chrome:://cache查看)，还是服务端的缓存(通过memcached或者redis等内存数据库)。缓存不仅可以加速用户的访问，同时也可以降低服务器的负载和压力。那么，了解常见的缓存淘汰算法的策...">
+  
+  <meta property="og:type" content="article">
+  <meta property="og:title" content="常见缓存算法和LRU的c++实现">
+  <meta property="og:description" content="对于web开发而言，缓存必不可少，也是提高性能最常用的方式。无论是浏览器缓存(如果是chrome浏览器，可以通过chrome:://cache查看)，还是服务端的缓存(通过memcached或者redis等内存数据库)。缓存不仅可以加速用户的访问，同时也可以降低服务器的负载和压力。那么，了解常见的缓存淘汰算法的策...">
+  
+  <link rel="icon" type="image/png" href="/assets/images/favicon.png" />
+  <link href="/assets/images/favicon.png" rel="shortcut icon" type="image/png">
+  
+  <link rel="stylesheet" href="/css/main.css">
+  <link href="//netdna.bootstrapcdn.com/font-awesome/4.1.0/css/font-awesome.min.css" rel="stylesheet">
+
+  <link rel="canonical" href="http://localhost:4000/2017/01/%E5%B8%B8%E8%A7%81%E7%BC%93%E5%AD%98%E7%AE%97%E6%B3%95%E5%92%8CLRU%E7%9A%84c++%E5%AE%9E%E7%8E%B0/">
+  <link rel="alternate" type="application/rss+xml" title="cpselvis" href="http://localhost:4000/feed.xml">
+  
+  <meta name="google-site-verification" content="1-1ZlHoRvM0T2FqPbW2S-qLgYXN6rsn52kErlMPd_gw" />
+  
+</head>
+
+
+  <body>
+
+    <span class="mobile btn-mobile-menu">
+        <i class="fa fa-list btn-mobile-menu__icon"></i>
+        <i class="fa fa-angle-up btn-mobile-close__icon hidden"></i>
+    </span>
+    
+    <header class="panel-cover panel-cover--collapsed" style="background-image: url('/assets/images/background-cover.jpg')">
+  <div class="panel-main">
+
+    <div class="panel-main__inner panel-inverted">
+    <div class="panel-main__content">
+
+        <a href="/#blog" title="前往 cpselvis 的主页" class="blog-button"><img src="/assets/images/avatar.jpg" width="80" alt="cpselvis logo" class="panel-cover__logo logo" /></a>
+        <h1 class="panel-cover__title panel-title"><a href="/#blog" title="link to homepage for cpselvis" class="blog-button">cpselvis</a></h1>
+        
+        <span class="panel-cover__subtitle panel-subtitle">落花无言,人淡如菊,心素如简</span>
+        
+        <hr class="panel-cover__divider" />
+        <p class="panel-cover__description">嗨，我是程柳锋 (@cpselvis)，一名来自中国的 web 开发者。现居深圳，就职于 腾讯。目前负责研发规范和工程化建设，曾在OSC源创会上做过分享。</p>
+        <hr class="panel-cover__divider panel-cover__divider--secondary" />
+        
+        
+        
+        <div class="navigation-wrapper">
+          <div>
+            <nav class="cover-navigation cover-navigation--primary">
+              <ul class="navigation">
+                <li class="navigation__item"><a href="/#blog" title="Visit blog" class="blog-button">博客</a></li>
+                
+                  <li class="navigation__item"><a href="https://cpselvis.github.io/" target="_blank" title="My Projects">首页</a></li>
+                
+              </ul>
+            </nav>
+          </div>
+          
+          <div><nav class="cover-navigation navigation--social">
+  <ul class="navigation">
+
+  
+  <!-- Weibo -->
+  <li class="navigation__item">
+    <a href="http://weibo.com/cpselvis" title="@cpselvis 的微博" target="_blank">
+      <i class='social fa fa-weibo'></i>
+      <span class="label">Weibo</span>
+    </a>
+  </li>
+  
+
+  
+  <!-- Github -->
+  <li class="navigation__item">
+    <a href="https://github.com/cpselvis" title="@cpselvis 的 Github" target="_blank">
+      <i class='social fa fa-github'></i>
+      <span class="label">Github</span>
+    </a>
+  </li>
+  
+  
+  
+  <!-- Twitter -->
+  <li class="navigation__item">
+    <a href="http://twitter.com/cpselvis" title="@cpselvis" target="_blank">
+      <i class='social fa fa-twitter'></i>
+      <span class="label">Twitter</span>
+    </a>
+  </li>
+  
+
+  
+  <!-- Google Plus -->
+  <li class="navigation__item">
+    <a href="https://plus.google.com/104634663101299635957" rel="author" title="Google+" target="_blank">
+      <i class='social fa fa-google-plus-square'></i>
+      <span class="label">Google Plus</span>
+    </a>
+  </li>
+  
+
+  <!-- RSS -->
+  <li class="navigation__item">
+    <a href="/feed.xml" rel="author" title="RSS" target="_blank">
+      <i class='social fa fa-rss'></i>
+      <span class="label">RSS</span>
+    </a>
+  </li>
+
+  
+  <!-- Email -->
+  <li class="navigation__item">
+    <a href="mailto:cpselvis@gmail.com" title="Contact me">
+      <i class='social fa fa-envelope'></i>
+      <span class="label">Email</span>
+    </a>
+  </li>
+  
+
+  </ul>
+</nav>
+</div>
+        </div>
+      </div>
+    </div>
+    
+    
+    <div class="panel-cover--overlay cover-blue"></div>
+    
+  </div>
+</header>
+
+
+    <div class="content-wrapper">
+        <div class="content-wrapper__inner">
+            <article class="post-container post-container--single" itemscope itemtype="http://schema.org/BlogPosting">
+  <header class="post-header">
+    <div class="post-meta">
+      <time datetime="2017-01-11 07:14:24 +0800" itemprop="datePublished" class="post-meta__date date">2017-01-11</time> &#8226; <span class="post-meta__tags tags"></span>
+    </div>
+    <h1 class="post-title">常见缓存算法和LRU的c++实现</h1>
+  </header>
+
+  <section class="post">
+    <p>对于web开发而言，缓存必不可少，也是提高性能最常用的方式。无论是浏览器缓存(如果是chrome浏览器，可以通过chrome:://cache查看)，还是服务端的缓存(通过memcached或者redis等内存数据库)。缓存不仅可以加速用户的访问，同时也可以降低服务器的负载和压力。那么，了解常见的缓存淘汰算法的策略和原理就显得特别重要。</p>
+
+<h3 id="常见的缓存算法">常见的缓存算法</h3>
+<ul>
+  <li>LRU (Least recently used) 最近最少使用，如果数据最近被访问过，那么将来被访问的几率也更高。</li>
+  <li>LFU (Least frequently used) 最不经常使用，如果一个数据在最近一段时间内使用次数很少，那么在将来一段时间内被使用的可能性也很小。</li>
+  <li>FIFO (Fist in first out) 先进先出， 如果一个数据最先进入缓存中，则应该最早淘汰掉。</li>
+</ul>
+
+<h3 id="lru缓存">LRU缓存</h3>
+<p>像浏览器的缓存策略、memcached的缓存策略都是使用LRU这个算法，LRU算法会将近期最不会访问的数据淘汰掉。LRU如此流行的原因是实现比较简单，而且对于实际问题也很实用，良好的运行时性能，命中率较高。下面谈谈如何实现LRU缓存：</p>
+
+<p><img src="http://images2015.cnblogs.com/blog/1030776/201701/1030776-20170111003848666-833030056.jpg" alt="" /></p>
+
+<ul>
+  <li>新数据插入到链表头部</li>
+  <li>每当缓存命中（即缓存数据被访问），则将数据移到链表头部</li>
+  <li>当链表满的时候，将链表尾部的数据丢弃</li>
+</ul>
+
+<p>LRU Cache具备的操作：</p>
+<ul>
+  <li>set(key,value)：如果key在hashmap中存在，则先重置对应的value值，然后获取对应的节点cur，将cur节点从链表删除，并移动到链表的头部；若果key在hashmap不存在，则新建一个节点，并将节点放到链表的头部。当Cache存满的时候，将链表最后一个节点删除即可。</li>
+  <li>get(key)：如果key在hashmap中存在，则把对应的节点放到链表头部，并返回对应的value值；如果不存在，则返回-1。</li>
+</ul>
+
+<h3 id="lru的c实现">LRU的c++实现</h3>
+<p>LRU实现采用双向链表 + Map 来进行实现。这里采用双向链表的原因是：如果采用普通的单链表，则删除节点的时候需要从表头开始遍历查找，效率为O(n)，采用双向链表可以直接改变节点的前驱的指针指向进行删除达到O(1)的效率。使用Map来保存节点的key、value值便于能在O(logN)的时间查找元素,对应get操作。</p>
+
+<p>双链表节点的定义：</p>
+<div class="language-cpp highlighter-rouge"><pre class="highlight"><code><span class="k">struct</span> <span class="n">CacheNode</span> <span class="p">{</span>
+  <span class="kt">int</span> <span class="n">key</span><span class="p">;</span>      <span class="c1">// 键
+</span>  <span class="kt">int</span> <span class="n">value</span><span class="p">;</span>    <span class="c1">// 值
+</span>  <span class="n">CacheNode</span> <span class="o">*</span><span class="n">pre</span><span class="p">,</span> <span class="o">*</span><span class="n">next</span><span class="p">;</span>  <span class="c1">// 节点的前驱、后继指针
+</span>  <span class="n">CacheNode</span><span class="p">(</span><span class="kt">int</span> <span class="n">k</span><span class="p">,</span> <span class="kt">int</span> <span class="n">v</span><span class="p">)</span> <span class="o">:</span> <span class="n">key</span><span class="p">(</span><span class="n">k</span><span class="p">),</span> <span class="n">value</span><span class="p">(</span><span class="n">v</span><span class="p">),</span> <span class="n">pre</span><span class="p">(</span><span class="nb">NULL</span><span class="p">),</span> <span class="n">next</span><span class="p">(</span><span class="nb">NULL</span><span class="p">)</span> <span class="p">{}</span>
+<span class="p">};</span>
+</code></pre>
+</div>
+
+<p>对于LRUCache这个类而言，构造函数需要指定容量大小</p>
+<div class="language-cpp highlighter-rouge"><pre class="highlight"><code><span class="n">LRUCache</span><span class="p">(</span><span class="kt">int</span> <span class="n">capacity</span><span class="p">)</span>
+<span class="p">{</span>
+  <span class="n">size</span> <span class="o">=</span> <span class="n">capacity</span><span class="p">;</span>      <span class="c1">// 容量
+</span>  <span class="n">head</span> <span class="o">=</span> <span class="nb">NULL</span><span class="p">;</span>          <span class="c1">// 链表头指针
+</span>  <span class="n">tail</span> <span class="o">=</span> <span class="nb">NULL</span><span class="p">;</span>          <span class="c1">// 链表尾指针
+</span><span class="p">}</span>
+</code></pre>
+</div>
+
+<p>双链表的节点删除操作：</p>
+<div class="language-cpp highlighter-rouge"><pre class="highlight"><code><span class="kt">void</span> <span class="nf">remove</span><span class="p">(</span><span class="n">CacheNode</span> <span class="o">*</span><span class="n">node</span><span class="p">)</span>
+<span class="p">{</span>
+  <span class="k">if</span> <span class="p">(</span><span class="n">node</span> <span class="o">-&gt;</span> <span class="n">pre</span> <span class="o">!=</span> <span class="nb">NULL</span><span class="p">)</span>
+  <span class="p">{</span>
+    <span class="n">node</span> <span class="o">-&gt;</span> <span class="n">pre</span> <span class="o">-&gt;</span> <span class="n">next</span> <span class="o">=</span> <span class="n">node</span> <span class="o">-&gt;</span> <span class="n">next</span><span class="p">;</span>
+  <span class="p">}</span>
+  <span class="k">else</span>
+  <span class="p">{</span>
+    <span class="n">head</span> <span class="o">=</span> <span class="n">node</span> <span class="o">-&gt;</span> <span class="n">next</span><span class="p">;</span>
+  <span class="p">}</span>
+  <span class="k">if</span> <span class="p">(</span><span class="n">node</span> <span class="o">-&gt;</span> <span class="n">next</span> <span class="o">!=</span> <span class="nb">NULL</span><span class="p">)</span>
+  <span class="p">{</span>
+    <span class="n">node</span> <span class="o">-&gt;</span> <span class="n">next</span> <span class="o">-&gt;</span> <span class="n">pre</span> <span class="o">=</span> <span class="n">node</span> <span class="o">-&gt;</span> <span class="n">pre</span><span class="p">;</span>
+  <span class="p">}</span>
+  <span class="k">else</span>
+  <span class="p">{</span>
+    <span class="n">tail</span> <span class="o">=</span> <span class="n">node</span> <span class="o">-&gt;</span> <span class="n">pre</span><span class="p">;</span>
+  <span class="p">}</span>
+<span class="p">}</span>
+</code></pre>
+</div>
+
+<p>将节点插入到头部的操作：</p>
+<div class="language-cpp highlighter-rouge"><pre class="highlight"><code><span class="kt">void</span> <span class="nf">setHead</span><span class="p">(</span><span class="n">CacheNode</span> <span class="o">*</span><span class="n">node</span><span class="p">)</span>
+<span class="p">{</span>
+  <span class="n">node</span> <span class="o">-&gt;</span> <span class="n">next</span> <span class="o">=</span> <span class="n">head</span><span class="p">;</span>
+  <span class="n">node</span> <span class="o">-&gt;</span> <span class="n">pre</span> <span class="o">=</span> <span class="nb">NULL</span><span class="p">;</span>
+
+  <span class="k">if</span> <span class="p">(</span><span class="n">head</span> <span class="o">!=</span> <span class="nb">NULL</span><span class="p">)</span>
+  <span class="p">{</span>
+    <span class="n">head</span> <span class="o">-&gt;</span> <span class="n">pre</span> <span class="o">=</span> <span class="n">node</span><span class="p">;</span>
+  <span class="p">}</span>
+  <span class="n">head</span> <span class="o">=</span> <span class="n">node</span><span class="p">;</span>
+  <span class="k">if</span> <span class="p">(</span><span class="n">tail</span> <span class="o">==</span> <span class="nb">NULL</span><span class="p">)</span>
+  <span class="p">{</span>
+    <span class="n">tail</span> <span class="o">=</span> <span class="n">head</span><span class="p">;</span>
+  <span class="p">}</span>
+<span class="p">}</span>
+</code></pre>
+</div>
+
+<p>get(key)操作的实现比较简单，直接通过判断Map是否含有key值即可，如果查找到key，则返回对应的value，否则返回-1;</p>
+<div class="language-cpp highlighter-rouge"><pre class="highlight"><code><span class="kt">int</span> <span class="nf">get</span><span class="p">(</span><span class="kt">int</span> <span class="n">key</span><span class="p">)</span>
+<span class="p">{</span>
+  <span class="n">map</span><span class="o">&lt;</span><span class="kt">int</span><span class="p">,</span> <span class="n">CacheNode</span> <span class="o">*&gt;::</span><span class="n">iterator</span> <span class="n">it</span> <span class="o">=</span> <span class="n">mp</span><span class="p">.</span><span class="n">find</span><span class="p">(</span><span class="n">key</span><span class="p">);</span>
+  <span class="k">if</span> <span class="p">(</span><span class="n">it</span> <span class="o">!=</span> <span class="n">mp</span><span class="p">.</span><span class="n">end</span><span class="p">())</span>
+  <span class="p">{</span>
+    <span class="n">CacheNode</span> <span class="o">*</span><span class="n">node</span> <span class="o">=</span> <span class="n">it</span> <span class="o">-&gt;</span> <span class="n">second</span><span class="p">;</span>
+    <span class="n">remove</span><span class="p">(</span><span class="n">node</span><span class="p">);</span>
+    <span class="n">setHead</span><span class="p">(</span><span class="n">node</span><span class="p">);</span>
+    <span class="k">return</span> <span class="n">node</span> <span class="o">-&gt;</span> <span class="n">value</span><span class="p">;</span>
+  <span class="p">}</span>
+  <span class="k">else</span>
+  <span class="p">{</span>
+    <span class="k">return</span> <span class="o">-</span><span class="mi">1</span><span class="p">;</span>
+  <span class="p">}</span>
+<span class="p">}</span>
+</code></pre>
+</div>
+
+<p>set(key, value)操作需要分情况判断。如果当前的key值对应的节点已经存在，则将这个节点取出来，并且删除节点所处的原有的位置，并在头部插入该节点；如果节点不存在节点中，这个时候需要在链表的头部插入新节点，插入新节点可能导致容量溢出，如果出现溢出的情况，则需要删除链表尾部的节点。</p>
+<div class="language-cpp highlighter-rouge"><pre class="highlight"><code><span class="kt">void</span> <span class="nf">set</span><span class="p">(</span><span class="kt">int</span> <span class="n">key</span><span class="p">,</span> <span class="kt">int</span> <span class="n">value</span><span class="p">)</span>
+<span class="p">{</span>
+  <span class="n">map</span><span class="o">&lt;</span><span class="kt">int</span><span class="p">,</span> <span class="n">CacheNode</span> <span class="o">*&gt;::</span><span class="n">iterator</span> <span class="n">it</span> <span class="o">=</span> <span class="n">mp</span><span class="p">.</span><span class="n">find</span><span class="p">(</span><span class="n">key</span><span class="p">);</span>
+  <span class="k">if</span> <span class="p">(</span><span class="n">it</span> <span class="o">!=</span> <span class="n">mp</span><span class="p">.</span><span class="n">end</span><span class="p">())</span>
+  <span class="p">{</span>
+    <span class="n">CacheNode</span> <span class="o">*</span><span class="n">node</span> <span class="o">=</span> <span class="n">it</span> <span class="o">-&gt;</span> <span class="n">second</span><span class="p">;</span>
+    <span class="n">node</span> <span class="o">-&gt;</span> <span class="n">value</span> <span class="o">=</span> <span class="n">value</span><span class="p">;</span>
+    <span class="n">remove</span><span class="p">(</span><span class="n">node</span><span class="p">);</span>
+    <span class="n">setHead</span><span class="p">(</span><span class="n">node</span><span class="p">);</span>
+  <span class="p">}</span>
+  <span class="k">else</span>
+  <span class="p">{</span>
+    <span class="n">CacheNode</span> <span class="o">*</span><span class="n">newNode</span> <span class="o">=</span> <span class="k">new</span> <span class="n">CacheNode</span><span class="p">(</span><span class="n">key</span><span class="p">,</span> <span class="n">value</span><span class="p">);</span>
+    <span class="k">if</span> <span class="p">(</span><span class="n">mp</span><span class="p">.</span><span class="n">size</span><span class="p">()</span> <span class="o">&gt;=</span> <span class="n">size</span><span class="p">)</span>
+    <span class="p">{</span>
+      <span class="n">map</span><span class="o">&lt;</span><span class="kt">int</span><span class="p">,</span> <span class="n">CacheNode</span> <span class="o">*&gt;::</span><span class="n">iterator</span> <span class="n">iter</span> <span class="o">=</span> <span class="n">mp</span><span class="p">.</span><span class="n">find</span><span class="p">(</span><span class="n">tail</span> <span class="o">-&gt;</span> <span class="n">key</span><span class="p">);</span>
+      <span class="n">remove</span><span class="p">(</span><span class="n">tail</span><span class="p">);</span>
+      <span class="n">mp</span><span class="p">.</span><span class="n">erase</span><span class="p">(</span><span class="n">iter</span><span class="p">);</span>
+    <span class="p">}</span>
+    <span class="n">setHead</span><span class="p">(</span><span class="n">newNode</span><span class="p">);</span>
+    <span class="n">mp</span><span class="p">[</span><span class="n">key</span><span class="p">]</span> <span class="o">=</span> <span class="n">newNode</span><span class="p">;</span>
+  <span class="p">}</span>
+<span class="p">}</span>
+</code></pre>
+</div>
+
+<p>至此，LRU算法的实现操作就完成了，完整的源码参考：https://github.com/cpselvis/leetcode/blob/master/solution146.cpp</p>
+
+  </section>
+</article>
+
+<section class="read-more">
+   
+   
+   <div class="read-more-item">
+       <span class="read-more-item-dim">最近的文章</span>
+       <h2 class="post-list__post-title post-title"><a href="/2017/01/%E7%90%86%E8%A7%A3Javascript%E7%9A%84%E7%8A%B6%E6%80%81%E5%AE%B9%E5%99%A8Redux/" title="link to 理解Javascript的状态容器Redux">理解Javascript的状态容器Redux</a></h2>
+       <p class="excerpt">Redux要解决什么问题？随着 JavaScript 单页应用开发日趋复杂，JavaScript 需要管理比任何时候都要多的 state （状态）。 这些 state 可能包括服务器响应、缓存数据、本地生成尚未持久化到服务器的数据，也包括 UI 状态，如激活的路由，被选中的标签，是否显示加载动效或者分页器等等。管理不断变化的 state 非常困难。如果一个 model 的变化会引起另一个 model 变化，那么当 view 变化时，就可能引起对应 model 以及另一个 model 的变化...&hellip;</p>
+       <div class="post-list__meta"><time datetime="2017-01-12 08:16:24 +0800" class="post-list__meta--date date">2017-01-12</time> &#8226; <span class="post-list__meta--tags tags"></span><a class="btn-border-small" href=/2017/01/%E7%90%86%E8%A7%A3Javascript%E7%9A%84%E7%8A%B6%E6%80%81%E5%AE%B9%E5%99%A8Redux/>继续阅读</a></div>
+   </div>
+   
+   
+   
+   
+   <div class="read-more-item">
+       <span class="read-more-item-dim">更早的文章</span>
+       <h2 class="post-list__post-title post-title"><a href="/2017/01/%E5%B8%83%E9%9A%86%E8%BF%87%E6%BB%A4%E5%99%A8(Bloom-Filter)%E7%9A%84%E5%8E%9F%E7%90%86%E5%92%8C%E5%AE%9E%E7%8E%B0/" title="link to 布隆过滤器(Bloom Filter)的原理和实现">布隆过滤器(Bloom Filter)的原理和实现</a></h2>
+       <p class="excerpt">什么情况下需要布隆过滤器？先来看几个比较常见的例子  字处理软件中，需要检查一个英语单词是否拼写正确  在 FBI，一个嫌疑人的名字是否已经在嫌疑名单上  在网络爬虫里，一个网址是否被访问过  yahoo, gmail等邮箱垃圾邮件过滤功能这几个例子有一个共同的特点： 如何判断一个元素是否存在一个集合中？常规思路  数组  链表  树、平衡二叉树、Trie  Map (红黑树)  哈希表虽然上面描述的这几种数据结构配合常见的排序、二分搜索可以快速高效的处理绝大部分判断元素是否存在集合中的需...&hellip;</p>
+       <div class="post-list__meta"><time datetime="2017-01-09 15:54:24 +0800" class="post-list__meta--date date">2017-01-09</time> &#8226; <span class="post-list__meta--tags tags"></span><a class="btn-border-small" href=/2017/01/%E5%B8%83%E9%9A%86%E8%BF%87%E6%BB%A4%E5%99%A8(Bloom-Filter)%E7%9A%84%E5%8E%9F%E7%90%86%E5%92%8C%E5%AE%9E%E7%8E%B0/>继续阅读</a></div>
+   </div>
+   
+</section>
+
+<section class="post-comments">
+  
+    <div id="disqus_thread"></div>
+    <script>
+    
+    var disqus_config = function () {
+        this.page.url = "http://localhost:4000/2017/01/%E5%B8%B8%E8%A7%81%E7%BC%93%E5%AD%98%E7%AE%97%E6%B3%95%E5%92%8CLRU%E7%9A%84c++%E5%AE%9E%E7%8E%B0/";
+        this.page.identifier = "/2017/01/%E5%B8%B8%E8%A7%81%E7%BC%93%E5%AD%98%E7%AE%97%E6%B3%95%E5%92%8CLRU%E7%9A%84c++%E5%AE%9E%E7%8E%B0/";
+    };
+
+    var disqus_shortname = 'vno-jekyll';
+    
+    (function() { // DON'T EDIT BELOW THIS LINE
+        var d = document, s = d.createElement('script');
+        s.src = '//' + disqus_shortname + '.disqus.com/embed.js';
+        s.setAttribute('data-timestamp', +new Date());
+            (d.head || d.body).appendChild(s);
+        })();
+    </script>
+    <noscript>要查看<a href="http://disqus.com/?ref_noscript"> Disqus </a>评论，请启用 JavaScript</noscript>
+    
+  
+  
+  
+  
+</section>
+
+
+            <section class="footer">
+    <footer>
+    	<span class="footer__copyright">本站点采用<a href="http://creativecommons.org/licenses/by-nc-sa/4.0/">知识共享 署名-非商业性使用-相同方式共享 4.0 国际 许可协议</a></span>
+        <span class="footer__copyright">由 <a href="https://jekyllrb.com">Jekyll</a> 于 2017-10-08 生成，感谢 <a href="https://www.digitalocean.com/?refcode=30ed2d146762">Digital Ocean</a> 为本站提供稳定的 VPS 服务</span>
+        <span class="footer__copyright">本站由 <a href="https://cpselvis.github.io">@cpselvis</a> 创建，采用 <a href="https://github.com/onevcat/vno-jekyll">Vno - Jekyll</a> 作为主题，您可以在 GitHub 找到<a href="https://github.com/onevcat/OneV-s-Den">本站源码</a> - &copy; 2017</span>
+    </footer>
+</section>
+
+        </div>
+    </div>
+    
+    <script type="text/javascript" src="//code.jquery.com/jquery-1.11.3.min.js"></script>
+
+<script type="text/javascript" src="/js/main.js"></script>
+
+
+
+    
+  </body>
+
+</html>

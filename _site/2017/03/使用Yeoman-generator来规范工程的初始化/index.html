@@ -1,0 +1,424 @@
+<!DOCTYPE html>
+<html>
+
+  <head>
+  <meta charset="utf-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+
+  <title>使用Yeoman generator来规范工程的初始化</title>
+  <meta name="description" content="">
+  <meta name="author" content="Wei Wang">
+
+  <meta name="twitter:card" content="summary">
+  <meta name="twitter:title" content="使用Yeoman generator来规范工程的初始化">
+  <meta name="twitter:description" content="">
+  
+  <meta property="og:type" content="article">
+  <meta property="og:title" content="使用Yeoman generator来规范工程的初始化">
+  <meta property="og:description" content="">
+  
+  <link rel="icon" type="image/png" href="/assets/images/favicon.png" />
+  <link href="/assets/images/favicon.png" rel="shortcut icon" type="image/png">
+  
+  <link rel="stylesheet" href="/css/main.css">
+  <link href="//netdna.bootstrapcdn.com/font-awesome/4.1.0/css/font-awesome.min.css" rel="stylesheet">
+
+  <link rel="canonical" href="http://localhost:4000/2017/03/%E4%BD%BF%E7%94%A8Yeoman-generator%E6%9D%A5%E8%A7%84%E8%8C%83%E5%B7%A5%E7%A8%8B%E7%9A%84%E5%88%9D%E5%A7%8B%E5%8C%96/">
+  <link rel="alternate" type="application/rss+xml" title="cpselvis" href="http://localhost:4000/feed.xml">
+  
+  <meta name="google-site-verification" content="1-1ZlHoRvM0T2FqPbW2S-qLgYXN6rsn52kErlMPd_gw" />
+  
+</head>
+
+
+  <body>
+
+    <span class="mobile btn-mobile-menu">
+        <i class="fa fa-list btn-mobile-menu__icon"></i>
+        <i class="fa fa-angle-up btn-mobile-close__icon hidden"></i>
+    </span>
+    
+    <header class="panel-cover panel-cover--collapsed" style="background-image: url('/assets/images/background-cover.jpg')">
+  <div class="panel-main">
+
+    <div class="panel-main__inner panel-inverted">
+    <div class="panel-main__content">
+
+        <a href="/#blog" title="前往 cpselvis 的主页" class="blog-button"><img src="/assets/images/avatar.jpg" width="80" alt="cpselvis logo" class="panel-cover__logo logo" /></a>
+        <h1 class="panel-cover__title panel-title"><a href="/#blog" title="link to homepage for cpselvis" class="blog-button">cpselvis</a></h1>
+        
+        <span class="panel-cover__subtitle panel-subtitle">落花无言,人淡如菊,心素如简</span>
+        
+        <hr class="panel-cover__divider" />
+        <p class="panel-cover__description">嗨，我是程柳锋 (@cpselvis)，一名来自中国的 web 开发者。现居深圳，就职于 腾讯。目前负责研发规范和工程化建设，曾在OSC源创会上做过分享。</p>
+        <hr class="panel-cover__divider panel-cover__divider--secondary" />
+        
+        
+        
+        <div class="navigation-wrapper">
+          <div>
+            <nav class="cover-navigation cover-navigation--primary">
+              <ul class="navigation">
+                <li class="navigation__item"><a href="/#blog" title="Visit blog" class="blog-button">博客</a></li>
+                
+                  <li class="navigation__item"><a href="https://cpselvis.github.io/" target="_blank" title="My Projects">首页</a></li>
+                
+              </ul>
+            </nav>
+          </div>
+          
+          <div><nav class="cover-navigation navigation--social">
+  <ul class="navigation">
+
+  
+  <!-- Weibo -->
+  <li class="navigation__item">
+    <a href="http://weibo.com/cpselvis" title="@cpselvis 的微博" target="_blank">
+      <i class='social fa fa-weibo'></i>
+      <span class="label">Weibo</span>
+    </a>
+  </li>
+  
+
+  
+  <!-- Github -->
+  <li class="navigation__item">
+    <a href="https://github.com/cpselvis" title="@cpselvis 的 Github" target="_blank">
+      <i class='social fa fa-github'></i>
+      <span class="label">Github</span>
+    </a>
+  </li>
+  
+  
+  
+  <!-- Twitter -->
+  <li class="navigation__item">
+    <a href="http://twitter.com/cpselvis" title="@cpselvis" target="_blank">
+      <i class='social fa fa-twitter'></i>
+      <span class="label">Twitter</span>
+    </a>
+  </li>
+  
+
+  
+  <!-- Google Plus -->
+  <li class="navigation__item">
+    <a href="https://plus.google.com/104634663101299635957" rel="author" title="Google+" target="_blank">
+      <i class='social fa fa-google-plus-square'></i>
+      <span class="label">Google Plus</span>
+    </a>
+  </li>
+  
+
+  <!-- RSS -->
+  <li class="navigation__item">
+    <a href="/feed.xml" rel="author" title="RSS" target="_blank">
+      <i class='social fa fa-rss'></i>
+      <span class="label">RSS</span>
+    </a>
+  </li>
+
+  
+  <!-- Email -->
+  <li class="navigation__item">
+    <a href="mailto:cpselvis@gmail.com" title="Contact me">
+      <i class='social fa fa-envelope'></i>
+      <span class="label">Email</span>
+    </a>
+  </li>
+  
+
+  </ul>
+</nav>
+</div>
+        </div>
+      </div>
+    </div>
+    
+    
+    <div class="panel-cover--overlay cover-blue"></div>
+    
+  </div>
+</header>
+
+
+    <div class="content-wrapper">
+        <div class="content-wrapper__inner">
+            <article class="post-container post-container--single" itemscope itemtype="http://schema.org/BlogPosting">
+  <header class="post-header">
+    <div class="post-meta">
+      <time datetime="2017-03-27 22:25:24 +0800" itemprop="datePublished" class="post-meta__date date">2017-03-27</time> &#8226; <span class="post-meta__tags tags"></span>
+    </div>
+    <h1 class="post-title">使用Yeoman generator来规范工程的初始化</h1>
+  </header>
+
+  <section class="post">
+    <p><img src="http://7tszky.com1.z0.glb.clouddn.com/FtM6zxr8gWVy1LQKD1e3lxkBAumx" alt="" /></p>
+
+<h3 id="前言">前言</h3>
+<blockquote>
+  <p>随着开发团队不断发展壮大，在人员增加的同时也带来了协作成本的增加；业务项目越来越多，类型也各不相同。常见的类型有基础组件、业务组件、基于React的业务项目、基于Vue的业务项目等等。如果想要对每个项目进行一些规范上的约束比如Git提交规范、Javascript规范简直难于登天。所有的这些，只是因为还欠缺一个好用的工程化工具，在项目创建的初期自动的将这些目录结构和文件生成、并且集成工程常见的规范来进行约束。</p>
+</blockquote>
+
+<p>本文分为两部分，首先会谈谈目前团队的痛点以及基于yeoman generator的设计思路；然后会详细介绍如何实现定制的generator，过程中遇到的问题和解决办法。</p>
+
+<h3 id="痛点一工程创建不智能">痛点一：工程创建不智能</h3>
+<ul>
+  <li>代码目录文件手工拷贝</li>
+  <li>不同场景的工程对目录结构的要求不尽相同</li>
+</ul>
+
+<h3 id="痛点二规范约束难以统一集成">痛点二：规范约束难以统一集成</h3>
+<ul>
+  <li>难以在新的工程项目中集成新的规范，需要手动加hook</li>
+  <li>缺少增量机制对旧项目集成</li>
+</ul>
+
+<h3 id="基于yeoman-generator的设计思路">基于Yeoman generator的设计思路</h3>
+<p>我们需要给每个工程类型的项目创建一个generator。按照目前前端技术栈的发展情况来看，一个团队一般会有3~5个generator。把这些generator看成一个个的插件，通过工具上层的CLI命令来暴露给开发者使用。</p>
+
+<p>在generator之下，需要开发一系列服务和集成规范。包括和Git仓库打通，也就是通过脚手架初始化目录时，先对开发者鉴权。之后根据开发者输入的项目名称在远程Git仓库里面创建仓库并且授予开发者权限。后期功能完善之后，可以做一些锦上添花的工作，比如进行数据统计，分析各个业务仓库使用的generator版本信息，是否集成了最新的feature等等。</p>
+
+<p>整体系统架构如下：</p>
+
+<p><img src="http://7tszky.com1.z0.glb.clouddn.com/FiwG7VvpYL3Tleaii9Q9dowGNJXv" alt="" /></p>
+
+<p>下面我准备开发一个适用于Now直播活动类搭建的脚手架了，名字是generator-now-activity</p>
+
+<h3 id="自定义generator的目录结构">自定义generator的目录结构</h3>
+<div class="language-shell highlighter-rouge"><pre class="highlight"><code>├───package.json
+└───generators/
+   ├───app/
+    |  ├───templates/
+    |   |  ├─── src/
+    |   |   |─── _cilintrc.js
+    |   |   |─── _eslintrc.js
+    |   |   |─── _fis-conf.js
+    |   |   |─── _package.json
+    |   |   |─── _project.js
+    |   |   |─── _README.md
+    |   |   |─── editorconfig
+    |   |   |─── gitignore
+    |   |  └─── vcmrc
+   │ └───index.js
+   └───utils.js   
+</code></pre>
+</div>
+
+<h3 id="扩展generator">扩展generator</h3>
+<p>在generator的外层index.js文件里，通过继承yeoman-generator来扩展我们自己的generator，然后模块暴露给外部。</p>
+<div class="language-javascript highlighter-rouge"><pre class="highlight"><code><span class="kr">const</span> <span class="nx">Generator</span> <span class="o">=</span> <span class="nx">require</span><span class="p">(</span><span class="s1">'yeoman-generator'</span><span class="p">);</span>
+
+<span class="nx">module</span><span class="p">.</span><span class="nx">exports</span> <span class="o">=</span> <span class="kr">class</span> <span class="kr">extends</span> <span class="nx">Generator</span> <span class="p">{</span>
+
+<span class="p">}</span>
+
+</code></pre>
+</div>
+
+<h3 id="yeoman的运行周期">Yeoman的运行周期</h3>
+<p>一个 Yeoman Generator 被创建后（构造函数必然是最先被调用的），会依次调用它原型上的方法，且每一个方法中的 this 都被绑定为 Generator 实例本身，调用的顺序如下：</p>
+
+<ul>
+  <li>initializing - 初始化一些状态之类的，通常是和用户输入的 options 或者 arguments 打交道，这个后面说。</li>
+  <li>prompting - 和用户交互的时候（命令行问答之类的）调用。</li>
+  <li>configuring - 保存配置文件（如 .babelrc 等）。</li>
+  <li>default - 其他方法都会在这里按顺序统一调用。</li>
+  <li>writing - 在这里写一些模板文件。</li>
+  <li>conflicts - 处理文件冲突，比如当前目录下已经有了同名文件。</li>
+  <li>install - 安装依赖</li>
+  <li>end - 结束部分</li>
+</ul>
+
+<h3 id="与用户交互">与用户交互</h3>
+<p>Yeoman提供了API来让generator和用户进行交互，直接通过this.prompts函数，它的内部实现是使用了Inquire.js。</p>
+<div class="language-javascript highlighter-rouge"><pre class="highlight"><code>  <span class="cm">/**
+   * 提示用户输入配置项
+   * @returns {Promise.&lt;TResult&gt;}
+   */</span>
+  <span class="nx">prompting</span><span class="p">()</span> <span class="p">{</span>
+
+    <span class="k">return</span> <span class="k">this</span><span class="p">.</span><span class="nx">prompt</span><span class="p">([{</span>
+      <span class="na">type</span><span class="p">:</span> <span class="s1">'input'</span><span class="p">,</span>
+      <span class="na">name</span><span class="p">:</span> <span class="s1">'projectName'</span><span class="p">,</span>
+      <span class="na">message</span><span class="p">:</span> <span class="s1">'请输入活动的名称 (now-activity):'</span><span class="p">,</span>
+      <span class="na">default</span><span class="p">:</span> <span class="s1">'now-activity-default'</span>
+    <span class="p">}]).</span><span class="nx">then</span><span class="p">((</span><span class="nx">answers</span><span class="p">)</span> <span class="o">=&gt;</span> <span class="p">{</span>
+      <span class="k">this</span><span class="p">.</span><span class="nx">log</span><span class="p">(</span><span class="s1">'活动名称'</span><span class="p">,</span> <span class="nx">answers</span><span class="p">.</span><span class="nx">projectName</span><span class="p">);</span>
+      <span class="k">this</span><span class="p">.</span><span class="nx">props</span> <span class="o">=</span> <span class="nx">answers</span><span class="p">;</span>
+    <span class="p">});</span>
+
+  <span class="p">}</span>
+</code></pre>
+</div>
+
+<h3 id="模板拷贝策略">模板拷贝策略</h3>
+<p>对于工程src目录部分直接通过深度优先算法拷贝写入。对于工程的规范类、配置的文件需要单独写入，这一类可能需要接受用户的输入，同时需要集中进行维护，因此需要和src的拷贝方式进行区分。</p>
+
+<p>src深度优先拷贝代码如下：</p>
+<div class="highlighter-rouge"><pre class="highlight"><code>const fs = require('fs');
+const path = require('path');
+
+function read(root, filter, files, prefix) {
+  prefix = prefix || '';
+  files = files || [];
+  filter = filter || noDotFiles;
+
+  const dir = path.join(root, prefix);
+  if (!fs.existsSync(dir)) return files;
+  if (fs.statSync(dir).isDirectory())
+    fs.readdirSync(dir)
+      .filter(filter)
+      .forEach(function (name) {
+        read(root, filter, files, path.join(prefix, name));
+      });
+  else
+    files.push(prefix);
+
+  return files
+}
+
+function noDotFiles(x) {
+  return x[0] !== '.';
+}
+
+module.exports = {
+  read
+};
+</code></pre>
+</div>
+
+<p>在外层通过Yeoman提供的API this.fs.copy()方法来进行文件拷贝</p>
+<div class="language-javascript highlighter-rouge"><pre class="highlight"><code>    <span class="cm">/**
+     * 源代码模板
+     */</span>
+    <span class="kr">const</span> <span class="nx">sourceCode</span> <span class="o">=</span> <span class="p">()</span> <span class="o">=&gt;</span> <span class="p">{</span>
+      <span class="kr">const</span> <span class="nx">sourceDir</span> <span class="o">=</span> <span class="nx">path</span><span class="p">.</span><span class="nx">join</span><span class="p">(</span><span class="k">this</span><span class="p">.</span><span class="nx">templatePath</span><span class="p">(),</span> <span class="s1">'./src/'</span><span class="p">);</span>
+      <span class="kr">const</span> <span class="nx">filePaths</span> <span class="o">=</span> <span class="nx">utils</span><span class="p">.</span><span class="nx">read</span><span class="p">(</span><span class="nx">sourceDir</span><span class="p">);</span>
+      <span class="nx">_</span><span class="p">.</span><span class="nx">each</span><span class="p">(</span><span class="nx">filePaths</span><span class="p">,</span> <span class="p">(</span><span class="nx">filePath</span><span class="p">)</span> <span class="o">=&gt;</span> <span class="p">{</span>
+        <span class="k">this</span><span class="p">.</span><span class="nx">fs</span><span class="p">.</span><span class="nx">copy</span><span class="p">(</span>
+          <span class="k">this</span><span class="p">.</span><span class="nx">templatePath</span><span class="p">(</span><span class="s1">'./src/'</span> <span class="o">+</span> <span class="nx">filePath</span><span class="p">),</span>
+          <span class="k">this</span><span class="p">.</span><span class="nx">destinationPath</span><span class="p">(</span><span class="s1">'./src/'</span> <span class="o">+</span> <span class="nx">filePath</span><span class="p">)</span>
+        <span class="p">);</span>
+      <span class="p">});</span>
+    <span class="p">};</span>
+</code></pre>
+</div>
+
+<p>开发完generator之后，就可以通过yo now-activity来进行使用了。</p>
+
+<h3 id="generator和其它工具如cli集成">generator和其它工具如CLI集成</h3>
+<p>前面提到的yo now-activity的方式使用可能存在一些问题，因为这种方式要求代码必须上传到github上。对于公司内部的工具，不走正常的开源流程显然是不被允许的。那么，有没有什么方法，不添加generator到Yeoman的generator列表里就能够使用呢？</p>
+
+<p>幸运的是，Yeoman提供了yeoman-environment来帮助我们在其它工具中集成编写好的generator，yo其实也只是yeoman-environment暴露到上层的一个命令而已。</p>
+
+<div class="language-javascript highlighter-rouge"><pre class="highlight"><code><span class="kr">const</span> <span class="nx">yeoman</span> <span class="o">=</span> <span class="nx">require</span><span class="p">(</span><span class="s1">'yeoman-environment'</span><span class="p">);</span>
+<span class="kr">const</span> <span class="nx">yeomanEnv</span> <span class="o">=</span> <span class="nx">yeoman</span><span class="p">.</span><span class="nx">createEnv</span><span class="p">();</span>
+
+<span class="cm">/**
+ * Lookup方法会在本地查找已经安装过的generator
+ */</span>
+<span class="nx">yeomanEnv</span><span class="p">.</span><span class="nx">lookup</span><span class="p">(()</span> <span class="o">=&gt;</span> <span class="p">{</span>
+    <span class="nx">yeomanEnv</span><span class="p">.</span><span class="nx">run</span><span class="p">(</span><span class="s1">'@tencent/now-activity'</span><span class="p">,</span> <span class="p">{</span><span class="s1">'skip-install'</span><span class="p">:</span> <span class="kc">true</span><span class="p">},</span> <span class="nx">err</span> <span class="o">=&gt;</span> <span class="p">{</span>
+        <span class="nx">console</span><span class="p">.</span><span class="nx">log</span><span class="p">(</span><span class="s1">'done'</span><span class="p">);</span>
+    <span class="p">});</span>
+<span class="p">});</span>
+</code></pre>
+</div>
+
+<h3 id="一些细节">一些细节</h3>
+<ul>
+  <li>为了方便本地调试看效果，在generator根目录下运行 tnpm  link</li>
+  <li>使用Yeoman提供的API this.log来打印信息，而不要使用console.log</li>
+  <li>如果是内部工具，运行的时候命令为：yo @tencent/now-activity</li>
+</ul>
+
+<h3 id="最后">最后</h3>
+<p>安装示例（限内部）</p>
+<div class="language-shell highlighter-rouge"><pre class="highlight"><code><span class="gp">$ </span>tnpm install -g yo generator-generator @tencent/feflow-cli
+<span class="gp">$ </span>feflow init
+</code></pre>
+</div>
+
+<h3 id="参考资料">参考资料</h3>
+<ul>
+  <li><a href="http://yeoman.io/generator/Base.html">Yeoman Generator API</a></li>
+  <li><a href="http://yeoman.io/authoring/index.html">WRITING YOUR OWN YEOMAN GENERATOR</a></li>
+  <li><a href="https://github.com/jhipster/generator-jhipster">Spring Boot + Angular projects</a></li>
+</ul>
+
+  </section>
+</article>
+
+<section class="read-more">
+   
+   
+   <div class="read-more-item">
+       <span class="read-more-item-dim">最近的文章</span>
+       <h2 class="post-list__post-title post-title"><a href="/2017/05/%E7%BC%96%E5%86%99%E5%8E%9F%E7%94%9F%E7%9A%84Node.js%E6%A8%A1%E5%9D%97/" title="link to 编写原生的Node.js模块">编写原生的Node.js模块</a></h2>
+       <p class="excerpt">  导语：当Javascript的性能遭遇瓶颈，或者需要增强Javascript能力的时候，就需要依赖native模块来实现了。应用场景日常工作中，我们经常需要将原生的Node.js模块做为依赖并在项目中进行使用。下面有个列表，你可能对它们的名字很熟悉:  node-sass 将sass文件编译成css文件  node-microtime: 扩展Javascript的时间精度  node-inspector：进行调试  v8-profiler：性能及内存使用分析通常，我们开发原生Node....&hellip;</p>
+       <div class="post-list__meta"><time datetime="2017-05-31 21:13:24 +0800" class="post-list__meta--date date">2017-05-31</time> &#8226; <span class="post-list__meta--tags tags"></span><a class="btn-border-small" href=/2017/05/%E7%BC%96%E5%86%99%E5%8E%9F%E7%94%9F%E7%9A%84Node.js%E6%A8%A1%E5%9D%97/>继续阅读</a></div>
+   </div>
+   
+   
+   
+   
+   <div class="read-more-item">
+       <span class="read-more-item-dim">更早的文章</span>
+       <h2 class="post-list__post-title post-title"><a href="/2017/03/Git-commit-message%E5%92%8C%E5%B7%A5%E4%BD%9C%E6%B5%81%E8%A7%84%E8%8C%83/" title="link to Git commit message和工作流规范">Git commit message和工作流规范</a></h2>
+       <p class="excerpt">目的  统一团队Git commit日志标准，便于后续代码review，版本发布以及日志自动化生成等等。  统一团队的Git工作流，包括分支使用、tag规范、issue等Git commit日志参考案例  angular  commit-message-test-project  babel-plugin-istanbul  conventional-changelog总体方案Git commit日志基本规范&lt;type&gt;(&lt;scope&gt;): &lt;subject&...&hellip;</p>
+       <div class="post-list__meta"><time datetime="2017-03-04 14:33:24 +0800" class="post-list__meta--date date">2017-03-04</time> &#8226; <span class="post-list__meta--tags tags"></span><a class="btn-border-small" href=/2017/03/Git-commit-message%E5%92%8C%E5%B7%A5%E4%BD%9C%E6%B5%81%E8%A7%84%E8%8C%83/>继续阅读</a></div>
+   </div>
+   
+</section>
+
+<section class="post-comments">
+  
+    <div id="disqus_thread"></div>
+    <script>
+    
+    var disqus_config = function () {
+        this.page.url = "http://localhost:4000/2017/03/%E4%BD%BF%E7%94%A8Yeoman-generator%E6%9D%A5%E8%A7%84%E8%8C%83%E5%B7%A5%E7%A8%8B%E7%9A%84%E5%88%9D%E5%A7%8B%E5%8C%96/";
+        this.page.identifier = "/2017/03/%E4%BD%BF%E7%94%A8Yeoman-generator%E6%9D%A5%E8%A7%84%E8%8C%83%E5%B7%A5%E7%A8%8B%E7%9A%84%E5%88%9D%E5%A7%8B%E5%8C%96/";
+    };
+
+    var disqus_shortname = 'vno-jekyll';
+    
+    (function() { // DON'T EDIT BELOW THIS LINE
+        var d = document, s = d.createElement('script');
+        s.src = '//' + disqus_shortname + '.disqus.com/embed.js';
+        s.setAttribute('data-timestamp', +new Date());
+            (d.head || d.body).appendChild(s);
+        })();
+    </script>
+    <noscript>要查看<a href="http://disqus.com/?ref_noscript"> Disqus </a>评论，请启用 JavaScript</noscript>
+    
+  
+  
+  
+  
+</section>
+
+
+            <section class="footer">
+    <footer>
+    	<span class="footer__copyright">本站点采用<a href="http://creativecommons.org/licenses/by-nc-sa/4.0/">知识共享 署名-非商业性使用-相同方式共享 4.0 国际 许可协议</a></span>
+        <span class="footer__copyright">由 <a href="https://jekyllrb.com">Jekyll</a> 于 2017-10-08 生成，感谢 <a href="https://www.digitalocean.com/?refcode=30ed2d146762">Digital Ocean</a> 为本站提供稳定的 VPS 服务</span>
+        <span class="footer__copyright">本站由 <a href="https://cpselvis.github.io">@cpselvis</a> 创建，采用 <a href="https://github.com/onevcat/vno-jekyll">Vno - Jekyll</a> 作为主题，您可以在 GitHub 找到<a href="https://github.com/onevcat/OneV-s-Den">本站源码</a> - &copy; 2017</span>
+    </footer>
+</section>
+
+        </div>
+    </div>
+    
+    <script type="text/javascript" src="//code.jquery.com/jquery-1.11.3.min.js"></script>
+
+<script type="text/javascript" src="/js/main.js"></script>
+
+
+
+    
+  </body>
+
+</html>

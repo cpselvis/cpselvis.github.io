@@ -1,0 +1,48 @@
+# Basic
+title: cpselvis
+subtitle: 落花无言,人淡如菊,心素如简
+description: 嗨，我是程柳锋 (@cpselvis)，一名来自中国的 web 开发者。现居深圳，就职于 腾讯。目前负责研发规范和工程化建设，曾在OSC源创会上做过分享。
+creator: <a href="https://cpselvis.github.io">@cpselvis</a>
+
+url: "https://cpselvis.github.io"
+
+permalink: /:year/:month/:title/
+
+# Format
+highlighter: rouge
+
+# supported colors: blue, green, purple, red, orange or slate. If you need clear, leave it empty.
+cover_color: blue
+
+# The blog button should not be removed.
+blog_button:
+    title: Blog
+    description: Visit blog
+
+# Navigation buttons in the front page.
+nav:
+    - {title: Projects, description: My Projects, url: 'http://project.onevcat.com'}
+    # - {title: Another Button, description: A button, url: 'http://example.com'}
+
+# Pagination
+gems: [jekyll-paginate]
+paginate: 10
+paginate_path: "page/:num/"
+
+# Comment
+comment:
+    disqus: vno-jekyll
+    # duoshuo:
+
+# Social
+social:
+    weibo: cpselvis
+    github: cpselvis
+    twitter: cpselvis
+    gplus: 104634663101299635957
+    mail: cpselvis@gmail.com
+
+# Google Analytics
+ga:
+    # id: your_ga_id
+    # host: your_host

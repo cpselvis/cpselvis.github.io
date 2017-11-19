@@ -1,5 +1,10 @@
 Webpack从2015年9月第一个版本横空初始至今已逾2载。它的出现，颠覆了一大批主流构建如Ant、Grunt和Gulp等等。腾讯NOW直播[IVWEB团队](https://ivweb.io/)之前一直采用Fis构建，本篇文章主要介绍从Fis迁移到webpack遇到的问题和背后的黑科技，内容包括inline-resource、多页面构建、资源压缩、文件hash、文件目录规则等等。
 
+### 为什么要迁移至webpack?
+有两个层面的原因：
+- 首先webpack的社区生态火爆，插件齐全并且维护更新的很频繁，遇到了问题，比较容易解决。
+- webpack里面有happypack多实例构建方案、code spliting按需加载文件等方案, 可以有效的进行打包构建持续优化, 这些在Fis里面是缺少的。
+
 ### 区分构建的开发or生产环境？
 ``` sh
   "scripts": {
@@ -218,3 +223,11 @@ rules: [
   ```
 
 由于篇幅原因，关于webpack的打包优化将会用另外一篇文章介绍，敬请期待～
+
+### 参考文档
+- [webpack 官方文档](https://webpack.js.org/guides/)
+- [一本介绍webpack比较全面的教程](https://survivejs.com/webpack/foreword/)
+- [html-webpack-plugin文档](https://github.com/jantimon/html-webpack-plugin)
+- [Wildcards in entry points](https://github.com/webpack/webpack/issues/370)
+- [BrowserslistError: Unknown version 55 of and_chr](https://github.com/ben-eb/cssnano/issues/340)
+

@@ -143,8 +143,41 @@ plugins: [
 ],
 ```
 
+### 文件Hash
+每次功能发布上线，都需要重新构建一次源代码，生成一个新的文件版本列表。此处文件Hash的方式就是一种版本管理的方式，发布时替换有变化的版本的文件，达到增量更新的效果。此处Hash策略是：根据文件内容进行hash，取8位。
 
+JS文件:
+``` javascript
+output: {
+    filename: '[name]_[chunkhash:8].js',     // 进行js脚本hash
+    path: path.resolve(__dirname, 'public/'),
+    publicPath: isDev ? '/' : cdnUrl + '/',
+},
+```
 
-
+Css文件:
+``` javascript
+plugins: [
+    new CleanWebpackPlugin(['./public']),
+    new ExtractTextPlugin('[name]_[contenthash:8].css'),  // css文件hash
+    new webpack.optimize.UglifyJsPlugin(),
+    ...
+]
+```
+Img文件:
+``` javascript
+rules: [
+    {
+        test: /\.(png|svg|jpg|gif)$/,
+        use: {
+            loader: 'file-loader',
+            options: {
+                name: '[name]_[hash:8].[ext]',    // img文件hash
+            }
+        }
+    },
+    ...
+]    
+```
 
 

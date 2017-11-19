@@ -1,4 +1,4 @@
-Webpack从2015年9月第一个版本横空初始至今已逾2载。它的出现，颠覆了一大批主流构建如Ant、Grunt和Gulp等等。腾讯NOW直播IVWEB团队之前一直采用Fis构建，本篇文章主要介绍从Fis迁移到webpack遇到的问题和背后的黑科技，内容包括inline-resource、多页面构建、资源压缩、文件hash、文件目录规则和打包优化的实践。
+Webpack从2015年9月第一个版本横空初始至今已逾2载。它的出现，颠覆了一大批主流构建如Ant、Grunt和Gulp等等。腾讯NOW直播[IVWEB团队](https://ivweb.io/)之前一直采用Fis构建，本篇文章主要介绍从Fis迁移到webpack遇到的问题和背后的黑科技，内容包括inline-resource、多页面构建、资源压缩、文件hash、文件目录规则等等。
 
 ### 区分构建的开发or生产环境？
 ``` sh
@@ -180,4 +180,41 @@ rules: [
 ]    
 ```
 
+### 多终端适配
+开发过程中，不同分辨率的浏览器适配是个让前端开发者头疼的问题。手淘的rem方案完美解决了这个问题，它的核心思想是页面加载时动态设置body的font-size值和rem和px转换的单位。
 
+为了不改变编程习惯，开发过程中仍然使用px单位来作为基础布局长度单位，以750px宽度的视觉稿作为基准，设置rem和px的转换单位为1rem=75px。那么px2rem如何集成进webpack中呢？首先增加css的解析[px2rem-loader](https://www.npmjs.com/package/px2rem-loader)，然后在html头部引入[lib-flexible](https://github.com/amfe/lib-flexible)文件。
+```javascript
+{
+    test: /\.scss$/,
+    use: ExtractTextPlugin.extract({
+        fallback: 'style-loader',
+        use: [
+            {
+                loader: "css-loader"
+            },
+            {
+                loader: "px2rem-loader", // 增加px2rem-loader，并且设置rem单位为75px
+                options: {
+                    remUnit: 75
+                }
+            },
+            {
+                loader: "sass-loader"
+            }
+        ]
+    })
+},
+```
+
+### 其它feature
+- 开发环境支持WDS: webpack3.x版本自带webpack-dev-server，开发环境中开启WDS。这样依赖的文件发生变化后，会自动增量构建并且刷新浏览器
+- 支持HMR: webpack.config.js文件内容变化后，会触发热更新逻辑，此处通过nodemon来守护webpack的构建进程，eg:
+  ``` sh
+    "scripts": {
+    "dev": "cross-env NODE_ENV=dev nodemon --watch webpack.config.js --exec \"webpack-dev-server --config webpack.config.js --env development\" --progress --colors"
+    ...
+  },
+  ```
+
+由于篇幅原因，关于webpack的打包优化将会用另外一篇文章介绍，敬请期待～

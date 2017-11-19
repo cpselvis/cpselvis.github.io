@@ -47,44 +47,101 @@ const HtmlWebpackInlineSourcePlugin = require('html-webpack-inline-source-plugin
 多页面构建，或者称为通配(wildcards)构建。即需要构建的页面数量是不确定的，可能A业务有3张页面，B业务有5张页面。因此，我们不能把entry写死了：
 
 ```javascript
-        entry: {
-          activity: './src/pages/activity/init.js',            // 深海寻宝活动首页
-          my-reward: './src/pages/my-reward/init.js',          // 我的奖励
-          exchange: './src/pages/exchange/init.js'             // 线下兑换奖品
-        },
+entry: {
+  activity: './src/pages/activity/init.js',            // 深海寻宝活动首页
+  my-reward: './src/pages/my-reward/init.js',          // 我的奖励
+  exchange: './src/pages/exchange/init.js'             // 线下兑换奖品
+},
 ```
 为什么上面的写法不可取呢？很明显：上面的写法把entry写死了，这并不通用。后面如果产品需求发生改变，需要新增一张页面，就需要手动修改构建脚本。我们需要的entry是：'./src/pages/\*\*/init.js'，它能够像一些linux的命令，具备匹配某个规则的所有结果的能力。这里的思路是借助**glob**，达到动态entry的目的。
+
+```javascript
+entry: glob.sync('./src/pages/**/init.js'),
+```
 
 在webpack构建中，一个页面需要一个与之对应的HtmlWebpackPlugin实例，N个页面需要N个与之对应的HtmlWebpackPlugin。此处需要动态的设置HtmlWebpackPlugin的实例个数。
 
 ```javascript
-    const newEntry = {};
+const newEntry = {};
 
-    Object.keys(config.entry).map((index) => {
-        const entry = config.entry[index];
-        const match = entry.match(/\/pages\/(.*)\/init.js/);
-        const pageName = match && match[1];
+Object.keys(config.entry).map((index) => {
+    const entry = config.entry[index];
+    const match = entry.match(/\/pages\/(.*)\/init.js/);
+    const pageName = match && match[1];
 
-        newEntry[pageName] = entry;
+    newEntry[pageName] = entry;
 
-        config.plugins.push(
-            new HtmlWebpackPlugin({
-                inlineSource: isDev ? undefined: '\\.css$',
-                template: __dirname + '/template/index.tmpl.html',
-                filename: `${pageName}.html`,
-                chunks: [pageName],
-                inject: true
-            })
-        );
-    });
-    config.entry = newEntry;
+    config.plugins.push(
+        new HtmlWebpackPlugin({
+            inlineSource: isDev ? undefined: '\\.css$',
+            template: __dirname + '/template/index.tmpl.html',
+            filename: `${pageName}.html`,
+            chunks: [pageName],
+            inject: true
+        })
+    );
+});
+config.entry = newEntry;
 ```
 
+### html、css和js压缩
+对于html文件里面的内容压缩可以通过给html-webpack-plugin设置minify参数，html-webpack-plugin的压缩配置其实是直接集成了 html-minifier，因此minify的参数设置可以直接参考html-minifier的文档。
+``` javascript
+config.plugins.push(
+    new HtmlWebpackPlugin({
+        inlineSource: isDev ? undefined: '\\.css$',
+        template: __dirname + '/template/index.tmpl.html',
+        filename: `${pageName}.html`,
+        chunks: [pageName],
+        inject: true,
+        minify: {
+            minifyJS: true,           // 仅压缩内联在html里面的js
+            minifyCSS: true,          // 仅压缩内联在html里面的css
+            html5: true,              // 以html5的文档格式解析html的模板文件
+            removeComments: false,    // 不删除Html文件里面的注释
+            collapseWhitespace: true, // 删除空格
+            preserveLineBreaks: false // 删除换行
+        }
+    })
+);
+```
 
+设置了上面的minify参数后，看到生成的html文件的内容全部在1行上，需要注意的是：minifyJS和minifyCSS只会压缩内联在这个html文件的css和js内容，对于单独的css文件和js文件并不会压缩。 那么打包出来的css和js文件如何压缩呢？
 
+对于css文件压缩，直接开启css-loader的压缩参数参数minimize为true即可：
+```
+{
+    test: /\.scss$/,
+    use: ExtractTextPlugin.extract({
+        fallback: 'style-loader',
+        use: [
+            {
+                loader: "css-loader",
+                options: {               // 设置css-loader的minimize参数为true
+                  minimize: true
+                }
+            },
+            {
+                loader: "sass-loader"
+            }
+        ]
+    })
+},
+```
+css-loader开启压缩可能会报错 Module build failed: BrowserlistError: unkonwn version 61 and _chr，解决办法：
+``` sh
+$ npm i caniuse-db —save    #更新caniuse-db到最新版本
+```
 
-
-
+对于js文件的压缩，可以通过引入 webpack 内置的 UglifyJsPlugin：
+```javascript
+const webpack = require('webpack');
+plugins: [
+    ...
+    new webpack.optimize.UglifyJsPlugin(),
+    ...
+],
+```
 
 
 

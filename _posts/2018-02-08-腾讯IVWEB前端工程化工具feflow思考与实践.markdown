@@ -153,3 +153,29 @@ $ feflow install feflow-plugin-xxx   // 安装某个插件
 ![](https://user-gold-cdn.xitu.io/2018/2/9/1617652fedf854c9?w=1274&h=596&f=jpeg&s=59931)
 
 当开发者输入 feflow init 命令时，开发者会告诉CLI需要创建哪一种类型的项目，CLI收到命令后。从本地已经安装的Yeoman脚手架里面选择某种类型的模板。然后，CLI会调用Gitlab API在远程创建仓库并且授予开发者master权限。接下来，会根据实际业务场景需要，自动化申请一些打点信息，常见的如离线包id，监控告警id等等。之后，在本地目录生成代码并且安装项目依赖的npm包，最后将本次初始化生成的所有代码自动提交到远程Git仓库。
+
+
+### 多类型主流构建支持
+为了让feflow 支持多种类型的构建环境，比如 Fis3 和 webpack，或者前不久刚推出的号称零配置成本的 Parcel 构建。在每个项目的跟目录会放置一份配置文件，名称为 feflow.json。它的配置可能是这样的：
+
+```
+{
+    "builderType": "builder-webpack3",
+    "builderOptions": {
+        "moduleName": "mobile",
+        "bizName": "category",
+        "minifyHTML": true,
+        "minifyCSS": true,
+        "minifyJS": true,
+        "usePx2rem": true,
+        "remUnit": 100,
+        "remPrecision": 8,
+        "inject": true,
+        "port": 8001
+    }
+}
+```
+
+### 最后
+腾讯IVWEB团队的工程化解决方案feflow已经开源：Github主页：https://github.com/feflow/feflow 
+如果对您的团队或者项目有帮助，请给个Star支持一下哈～

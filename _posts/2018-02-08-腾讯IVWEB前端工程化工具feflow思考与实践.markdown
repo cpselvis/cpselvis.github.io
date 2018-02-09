@@ -1,3 +1,4 @@
+![](https://qpic.url.cn/feeds_pic/eMJXws7FFlauUALSWA3S7iceia5xM4HrEfUve3X4PJyAw/)
 本篇文章主要介绍腾讯IVWEB团队从0到1在工程化这块的思考和实践。我所认为的工程化包含两个部分：工作流和规范。工作流是从项目初始化、本地开发、打包构建到最终发布的整个过程；规范贯穿这个过程，通过它让项目的目录结构一致、代码质量更高、Git提交格式统一、README文档更加实用。工程化最大的好处是统一团队的开发标准、提升开发效率。
 
 工程化是否是必须的呢？不是。团队人数很少的，或者项目没有那么复杂的时候并不需要工程化。
@@ -12,7 +13,7 @@
 为了解决上述问题，我们于17年2月底开始投入工程化feflow工具的开发和相关规范的制定，目前已经研发出了 feflow 的 [CLI](https://github.com/feflow/feflow) 版本，后续会推出 GUI 版本。
 
 ### 架构设计
-![](https://user-gold-cdn.xitu.io/2018/2/8/1617621e74c41e6c?w=1528&h=780&f=jpeg&s=130447)
+![](https://qpic.url.cn/feeds_pic/Fia6FID6YXfJiaVVicpFaNg2GfB6KzsNIibpxK3YdDINCGY/)
 
 为了让 feflow 的具有高可扩展性，我们设计了4层结构，分别是：插件生态、内核层、参数解析器和控制台。除了贯穿整个开发工作流的基础命令选择通过内部插件内置在CLI 的Core里面，其它非必要命令统一通过插件机制进行扩展。
 
@@ -150,7 +151,7 @@ $ feflow install feflow-plugin-xxx   // 安装某个插件
 - end:  结束部分，初始代码自动提交
 
 我们只需要继承Yeoman的Generator类做模板定制化，基于Yeoman的脚手架设计思路应该如下图所示：
-![](https://user-gold-cdn.xitu.io/2018/2/9/1617652fedf854c9?w=1274&h=596&f=jpeg&s=59931)
+![](https://qpic.url.cn/feeds_pic/Q3auHgzwzM5OeF65JG7fNeUbvwzbQ7wEjX4Bzs5TBJjgyZ9r8F7gZA/)
 
 当开发者输入 feflow init 命令时，开发者会告诉CLI需要创建哪一种类型的项目，CLI收到命令后。从本地已经安装的Yeoman脚手架里面选择某种类型的模板。然后，CLI会调用Gitlab API在远程创建仓库并且授予开发者master权限。接下来，会根据实际业务场景需要，自动化申请一些打点信息，常见的如离线包id，监控告警id等等。之后，在本地目录生成代码并且安装项目依赖的npm包，最后将本次初始化生成的所有代码自动提交到远程Git仓库。
 

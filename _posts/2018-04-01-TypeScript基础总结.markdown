@@ -21,7 +21,7 @@ tsc hello.ts
 语法：变量或者函数后接 :TypeAnnotation
 
 比如：
-```sh
+```typescript
 let a: number = 123;
 
 function add(a: number, b: number): number {
@@ -32,7 +32,7 @@ function add(a: number, b: number): number {
 ### 原始类型
 TS里的原始类型包括string, number和boolean，这些也是JS的原始类型。在TS里，你可以显示声明变量为某一种类型。
 
-```
+```typescript
 let num: number;
 let str: string;
 let bool: boolean;
@@ -48,3 +48,51 @@ bool = true;
 bool = false;
 bool = 'false';  // 错误
 ```
+
+
+### 数组
+TS里手动指明一个数组类型很简单，只需要在普通类型注解后面加上[]符号。比如声明一个布尔数组为 :boolean[] 
+``` typescript
+let boolArray: boolean[];
+
+boolArray = [true, false];
+console.log(boolArray[0]);     // true
+console.log(boolArray.length); // 2
+boolArray[1] = true;
+boolArray = [false, false];
+
+boolArray[0] = 'false';        // 错误
+boolArray = 'false';           // 错误
+boolArray = [true, 'false'];   // 错误
+```
+
+### 枚举
+枚举在TS里面是原生支持的，使用枚举我们可以定义一些带名字的常量，它的好处是可以让语意更清晰。定义一个枚举值，需要使用 **enum**。
+
+TS 仅支持基于数字的和字符串的枚举。如果是数字枚举，枚举值默认是从0开始，依次自增的。你也可以手动的设置第一个枚举值，比如为1。
+
+```typescript
+
+
+enum Color {
+    RED = 1,
+    GREEN,
+    YELLOW
+}
+console.log(Color.GREEN);   // 2
+
+enum Direction {
+    UP = 'UP',
+    DOWN = 'DOWN',
+    LEFT = 'LEFT',
+    RIGHT = 'RIGHT'
+}
+console.log(Direction.UP);   // 'UP'
+```
+虽然TS支持**异构枚举**（即数字和字符串混搭的枚举），但是并不建议使用这种方式。
+
+### 特殊类型
+- any: 任何元素都可以赋值给它，它也可以赋值给任何元素。相当于关掉类型检查，适用 js 代码迁移到 ts。
+- null: 可以赋值给任何元素
+- undefined: 可以赋值给任何元素
+- void: 表示函数没有返回类型

@@ -1,0 +1,2 @@
+最近工作中发现不少同事对版本号中的beta和rc没有概念，使用**npm install package@next**时，也不清楚next代表的含义。于是，决定写一篇文章科普一下Semver(语义化版本)的相关知识。
+

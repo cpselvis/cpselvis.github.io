@@ -63,5 +63,15 @@
 - 兼容模块新发布的大版本、小版本、补丁版本：*、x
 
 ### npm包发布
+通常我们发布一个包到npm仓库时，我们的做法是先修改 package.json 为某个版本，然后执行 npm publish 命令。手动修改版本号的做法建立在你对Semver规范特别熟悉的基础之上，否则可能会造成版本混乱。npm 考虑到了这点，它提供了相关的命令来让我们更好的遵从Semver规范：
 
+- 升级补丁版本号：npm version patch
+- 升级小版本号：npm version minor
+- 升级大版本号：npm version major
+
+当执行 npm publish 时，会首先将当前版本发布到 npm registry，然后更新 dist-tags.latest 的值为新版本。
+
+当执行 npm publish --tag=next 时，会首先将当前版本发布到 npm registry，并且更新 dist-tags.next 的值为新版本。这里的 next 可以是任意有意义的命名（比如：v1.x、v2.x 等等）
+
+OK，现在你应该知道 **npm install package@next**时，也不清楚next代表的含义了吧！
 

@@ -21,7 +21,9 @@
 官网：https://semver.org/ 中文版：https://semver.org/lang/zh-CN/
 
 下面是遵从了Semver规范的React依赖图，截图来自npm.broofa.com:
-![](https://qpic.url.cn/feeds_pic/ajNVdqHZLLDTUWIAJkTXepEiazlZanias717ibkZb3VPxW8CibUpIicHmIg/)
+![](https://qpic.url.cn/feeds_pic/Q3auHgzwzM4PJm4njhBMZtqicRCFSFjVcTX3LoElby5tfB2oicicibqyOA/)
+
+可以看出，遵从了Semver规范的包依赖非常清晰，没有出现循环依赖、依赖冲突等常见问题。
 
 ### 版本格式
 版本格式：主版本号.次版本号.修订号，版本号递增规则如下：

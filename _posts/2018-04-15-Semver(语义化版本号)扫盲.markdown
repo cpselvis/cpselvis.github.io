@@ -3,12 +3,12 @@
 ### 实际案例
 首先，我们来看看目前最流行的前端框架之一的React最近5个月的版本发布日志，截图来自npmjs.com：
 
-![](https://user-gold-cdn.xitu.io/2018/4/15/162c9a9c26576fb5?w=1302&h=660&f=jpeg&s=112844)
+![](https://qpic.url.cn/feeds_pic/Q3auHgzwzM7r8hmm2icrnPzGQIb32xRrl1eqwwzQLx3WhrZOaOv4lzg/)
 
  从上图，我们不难得出几个结论：
  - 软件的版本通常由三位组成，形如：X.Y.Z
  - 版本是严格递增的，此处是：16.2.0 -> 16.3.0 -> 16.3.1
- - 在发布重要版本时，可以使用alpha, rc等对版本进行修饰
+ - 在发布重要版本时，可以发布alpha, rc等先行版本
  - alpha和rc等修饰版本的关键字后面可以带上次数和meta信息
 
 可以说，React 发布版本时做的相当到位，版本给人的感觉非常清晰，也很严谨。这得益于 Semver(语义化版本) 规范的功劳。那么，Semver是在什么场景下出现的呢？它的出现又解决了什么问题？这里要和大家科普下“依赖地狱”的概念。
@@ -19,6 +19,9 @@
 因此，Github 起草了一个具有指导意义的，统一的版本号表示规则，称为 Semantic Versioning(语义化版本表示)。该规则规定了版本号如何表示，如何增加，如何进行比较，不同的版本号意味着什么。
 
 官网：https://semver.org/ 中文版：https://semver.org/lang/zh-CN/
+
+下面是遵从了Semver规范的React依赖图，截图来自npm.broofa.com:
+![](https://qpic.url.cn/feeds_pic/ajNVdqHZLLDTUWIAJkTXepEiazlZanias717ibkZb3VPxW8CibUpIicHmIg/)
 
 ### 版本格式
 版本格式：主版本号.次版本号.修订号，版本号递增规则如下：
@@ -73,5 +76,5 @@
 
 当执行 npm publish --tag=next 时，会首先将当前版本发布到 npm registry，并且更新 dist-tags.next 的值为新版本。这里的 next 可以是任意有意义的命名（比如：v1.x、v2.x 等等）
 
-OK，现在你应该知道 **npm install package@next**时，也不清楚next代表的含义了吧！
+OK，现在你应该知道 **npm install package@next**时next代表的含义了吧！
 

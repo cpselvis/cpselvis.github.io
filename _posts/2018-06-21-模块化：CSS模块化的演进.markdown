@@ -1,0 +1,235 @@
+> CSS 做为 Web 技术的基石，从一开始就展示出了巨大的潜力。它的入门非常简单，你只需为元素定义好样式属性和值。然而 CSS 特性随着规范的升级越来越丰富，前端业务复杂性的增加也使得工程愈加庞大。在大型 Web 应用里面，CSS 的组织是一件复杂和凌乱的事情，你更改页面上任意一个元素的一行CSS样式都有可能影响到其他页面上的元素。
+
+由于 CSS 本身并不编程特性，因此在演变过程中出现了很多优秀的编程思想，本文会带领大家探讨 CSS 模块化的演变历程。
+
+## CSS 预处理器
+
+CSS 预处理器是什么？一般来说，它们基于 CSS 扩展了一套属于自己的 DSL，来解决我们书写 CSS 时难以解决的问题：
+
+- 语法不够强大，比如无法嵌套书写导致模块化开发中需要书写很多重复的选择器
+- 没有变量和合理的样式复用机制，使得逻辑上相关的属性值必须以字面量的形式重复输出，导致难以维护。
+
+Sass、LESS、Stylus 是目前最主流的 CSS 预处理器，它们本质上是一种编译器。此处以 Sass 为例，它支持 .scss，.sass 文件类型。其语法支持变量、选择器嵌套、继承（extend）、混合（mixin）和一些逻辑语句，同时还支持跨文件的导入功能，因而使得开发者能够很好的使用编程思想书写样式。
+
+### 变量
+
+```scss
+$red: #f00;
+
+.body {
+  color: $red;
+}
+```
+
+### 选择器嵌套
+
+``` scss
+.hello {
+  .world {
+    color: red;
+  }
+}
+```
+
+生成的 CSS 为：
+
+```scss
+.hello .world {
+  color: red;
+}
+```
+
+### mixin
+
+对于预处理器来说，mixin(混合)应该是它的最精髓的功能之一了，它提供了 CSS 缺失的最关键的东西：样式层面的抽象。
+
+Sass 用 @mixin 和 @include 两个指令清楚地描述了语义：
+
+```scss
+@mixin large-text {
+  font: {
+    family: Arial;
+    size: 20px;
+    weight: bold;
+  }
+  color: #ff0000;
+}
+
+.page-title {
+  @include large-text;
+  padding: 4px;
+  margin-top: 10px;
+}
+```
+
+## 后处理器
+
+后处理器其实也是一种编译器，如果说预处理器是事前编译，那么后处理器就是事后编译。比较典型的后处理器有：
+
+- [clean-css](https://github.com/jakubpawlowicz/clean-css): 用来压缩CSS
+- AutoPrefixer: 自动添加 CSS3 属性各浏览器的前缀
+- [Rework](https://github.com/reworkcss/rework): 取代 stylus 的插件化框架
+- PostCSS
+
+举个例子：补足前缀。
+
+``` scss
+.wrap {
+  display: flex;
+}
+```
+
+对于这段代码，AutoPrefixer会根据 [Can I use](https://caniuse.com/) 的浏览器支持数据为基础，自动补全前缀，编译后的代码如下：
+
+```scss
+.wrap {
+  display: -webkit-box;
+  display: -webkit-flex;
+  display: -ms-flexbox;
+  display: flex;
+}
+```
+
+## SMACSS可扩展CSS
+
+[SMACSS](https://smacss.com/)(Scalable and Modular Architecture for CSS) 即可扩展的模块化CSS架构。它的核心思想是将 CSS 的组织划分为5类：
+
+### 基础样式
+
+基础样式包括设置默认超链接的颜色，默认字体样式和body背景。通常用来定义全局的样式，比如 CSS Reset。
+
+``` css
+body, form {
+  margin: 0;
+  padding: 0;
+}
+a {
+  color: #039;
+}
+a:hover {
+  color: #03F;
+}
+```
+
+### 布局
+
+将页面分为各个区域的元素块，比如header, sidebar, footer等。
+
+### 模块
+
+可复用的单元。在模块中需要注意的是选择器一律选择 class selector，避免嵌套子选择器，减少权重，方便外部覆盖。
+
+### 状态
+
+状态 class 一般通过js动态挂载到元素上，可以根据状态覆盖元素上特定属性。
+
+```css
+.tab { background-color: purple;... } 
+.is-tab-active { background-color: white; }
+```
+
+### 主题
+
+可选的视觉外观。一般根据需求有颜色，字体，布局等等，实现是将这些样式单独抽出来，根据外部条件（ data 属性，媒体查询等）动态设置。
+
+## BEM
+
+BEM 即Block Element Modifier；类名命名规则： Block__Element--Modifier
+
+- Block 所属组件名称
+- Element 组件内元素名称
+- Modifier 元素或组件修饰符
+
+其核心思想就是组件化。首先一个页面可以按层级依次划分未多个组件，其次就是单独标记这些元素。BEM通过简单的块、元素、修饰符的约束规则确保类名的唯一，同时将类选择器的语义化提升了一个新的高度。
+
+## CSS IN JS
+
+我们都知道传统的前端开发的分层模型中，HTML, CSS和JS是相互分离的，也因此形成了一个网页开发的准则"[关注点分离](https://en.wikipedia.org/wiki/Separation_of_concerns#HTML.2C_CSS.2C_JavaScript)"。
+
+CSS IN JS 这个理念是由 Facebook 工程师 [vjeux](https://speakerdeck.com/vjeux/react-css-in-js) 在一次分享中提出的，用来解决在 React 中使用 CSS 的问题。因为 React 的组件结构，强制要求把 HTML、CSS、JavaScript 写在一起。比如：
+
+``` javascript
+const style = {
+  'color': 'red',
+  'fontSize': '46px'
+};
+
+const clickHandler = () => alert('hello');
+
+ReactDOM.render(
+  <div style={ style } onclick={ clickHandler }>
+    Hello, world!
+  </div>,
+document.getElementById('app')
+);
+```
+
+这种写法将结构，样式和行为写在了一起，完全违背了"关注点分离"的原则。但是，这有利于组件的隔离。每个组件包含了所有需要用到的代码，不依赖外部，组件之间没有耦合，很方便复用。
+
+## CSS Module
+
+[CSS Module](https://github.com/css-modules/css-modules) 并不是将 CSS 改造成编程语言，而是通过给 CSS 加入局部作用域和模块依赖的方式达到 CSS 的模块化。
+
+比如，一个React组件App.js:
+
+``` javascript
+import style from './App.scss';
+
+export default class App extends Component {
+
+  render() {
+    return (
+      <div className={styles.app}>CSS Modules Demo</div>
+    );
+  }
+}
+```
+
+上面代码中，我们将样式文件App.css输入到style对象，然后引用style.app代表一个class。
+
+```scss
+.app {
+  text-size-adjust: none;
+  font-family: helvetica, arial, sans-serif;
+  line-height: 200%;
+  padding: 6px 20px 30px;
+}
+```
+
+构建工具会将类名style.app编译成一个哈希字符串。
+
+``` javascript
+<div class="App__app___3lRY_">
+  Hello World
+</div>
+```
+
+对应的CSS如下：
+
+``` css
+.App__app___3lRY_ {
+  -webkit-text-size-adjust: none;
+  -ms-text-size-adjust: none;
+  text-size-adjust: none;
+  font-family: helvetica, arial, sans-serif;
+  line-height: 200%;
+  padding: 6px 20px 30px;
+}
+```
+
+CSS Module为每个本地定义的类名动态创建一个全局唯一类名，然后注入到UI。从开发体验上来看，这种做法让开发者不必在类名的命名上小心翼翼，直接使用随机编译生成唯一标识即可。
+
+CSS Module支持多种构建工具，详细的接入文档参考：[CSS Module接入文档](https://github.com/css-modules/css-modules/blob/master/docs/get-started.md)。本文使用的是 webpack 构建，在css-loader后面通过增加`modules`参数的方式开启 CSS Module，如下所示：
+
+``` javascript
+{
+  test: /\.css$/,
+  loader: "style-loader!css-loader?modules&importLoaders=1&localIdentName=[name]__[local]___[hash:base64:5]!postcss-loader"
+},
+```
+
+备注：css-loader默认的哈希算法是[hash:base64]，会将这会将 .app 编译成 ._3zyde4l1yATCOkgn-DBWEL 这样的字符串。此处通过localIdentName修改哈希名称为 App__app___3lRY_ 的形式。
+
+## 总结
+
+CSS 的模块化演进历程还在继续，目前还未像 JavaScript 模块化出现 ES Modules 语言层面支持的终极方案。在 CSS 模块化演进的过程中，出现了很多优秀的设计思想和实践，这些值得我们借鉴和学习。
